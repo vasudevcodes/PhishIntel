@@ -167,7 +167,7 @@ def _extract_auth_evidence(
     else:
         has_valid_auth = False
 
-    if has_any_pass_finding and not has_valid_auth:
+    if has_any_pass_finding and not is_boundary_trusted:
         if boundary_trust_str in ("UNTRUSTED", "SUSPICIOUS"):
             contributing.append(
                 f"Authentication results were recorded by an untrusted or unrecognized authserv-id ('{boundary_authserv}')."
@@ -388,27 +388,41 @@ def _format_forensic_explanation(
         parts.append("URL evidence: No links detected in message body.")
 
     # Authentication evidence component
+    has_any_pass = any(s == "PASS" for s in [auth_summary.spf_status, auth_summary.dkim_status, auth_summary.dmarc_status])
+    has_any_results = any(s != "NOT_PRESENT" for s in [auth_summary.spf_status, auth_summary.dkim_status, auth_summary.dmarc_status])
+
     if auth_summary.has_explicit_failure:
-        parts.append(
-            f"Authentication evidence: Explicit failure recorded (SPF={auth_summary.spf_status}, "
-            f"DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status})."
-        )
+        if auth_summary.is_boundary_trusted:
+            parts.append(
+                f"Authentication evidence: Explicit failure verified by recipient boundary MTA (SPF={auth_summary.spf_status}, "
+                f"DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status})."
+            )
+        else:
+            parts.append(
+                f"Authentication evidence: Explicit failure reported in headers (SPF={auth_summary.spf_status}, "
+                f"DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}), but assertions cannot be independently verified offline."
+            )
     elif auth_summary.has_conflicts:
         parts.append(
             f"Authentication evidence: Conflicting authentication assertions recorded across intermediate MTAs "
             f"(SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status})."
         )
-    elif auth_summary.has_valid_authentication:
-        if auth_summary.is_boundary_trusted:
-            parts.append(
-                f"Authentication evidence: Receiver-reported domain authentication passed at boundary MTA "
-                f"(SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status})."
-            )
-        else:
-            parts.append(
-                f"Authentication evidence: Domain authentication pass assertions exist only on upstream hops "
-                f"(SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}), not verified by boundary MTA."
-            )
+    elif auth_summary.is_boundary_trusted and auth_summary.has_valid_authentication:
+        parts.append(
+            f"Authentication evidence: Cryptographically verified receiver-boundary authentication passed "
+            f"(SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status})."
+        )
+    elif has_any_pass:
+        parts.append(
+            f"Authentication evidence: Receiver-reported domain authentication passed (SPF={auth_summary.spf_status}, "
+            f"DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}). Note: In offline analysis, reported authentication "
+            "assertions within the file cannot be independently verified."
+        )
+    elif has_any_results:
+        parts.append(
+            f"Authentication evidence: Neutral or indeterminate authentication results recorded (SPF={auth_summary.spf_status}, "
+            f"DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status})."
+        )
     else:
         parts.append("Authentication evidence: No authentication results present in email headers.")
 
@@ -450,9 +464,19 @@ def fuse_evidence(
     has_auth_fail = auth_summary.has_explicit_failure
     has_auth_conflict = auth_summary.has_conflicts
     is_boundary_trusted = auth_summary.is_boundary_trusted
+
+    # Boundary-verified pass (requires trusted boundary MTA provenance)
     has_trusted_auth_pass = (
         auth_summary.has_valid_authentication
         and is_boundary_trusted
+        and not has_auth_fail
+        and not has_auth_conflict
+    )
+
+    # Reported pass in headers (assertions exist within the uploaded email, unverified offline)
+    has_any_pass = any(s == "PASS" for s in [auth_summary.spf_status, auth_summary.dkim_status, auth_summary.dmarc_status])
+    has_reported_pass = (
+        has_any_pass
         and not has_auth_fail
         and not has_auth_conflict
     )
@@ -470,7 +494,7 @@ def fuse_evidence(
         rationale = (
             "High-risk indicators are present based on corroborated severe evidence: high-risk structural URL deception "
             f"({', '.join(url_summary.suspicious_indicators[:2]) if url_summary.suspicious_indicators else 'severe link deception'}) "
-            "coinciding with explicit authentication failure or elevated text model similarity."
+            "coinciding with explicit authentication failure, elevated text model similarity, or multiple deceptive URL markers."
         )
     elif has_high_url:
         category = AssessmentCategory.HIGH_RISK_INDICATORS_PRESENT
@@ -494,13 +518,20 @@ def fuse_evidence(
         )
 
     # Condition 3: Elevated text model score corroborated by moderate URL anomalies on UNVERIFIED or UNTRUSTED email
-    elif has_high_model and has_med_url and not has_trusted_auth_pass:
+    # Requires genuine corroboration (multiple distinct suspicious URL indicators or explicit auth conflicts/failures).
+    # Isolated text score + single URL anomaly on reported-pass mail must NOT produce HIGH_RISK.
+    elif has_high_model and has_med_url and (has_auth_fail or has_auth_conflict or not has_reported_pass or len(url_summary.suspicious_indicators) >= 2):
         category = AssessmentCategory.HIGH_RISK_INDICATORS_PRESENT
+        corrob_factors = [f"moderate URL anomalies ({', '.join(url_summary.suspicious_indicators[:2]) if url_summary.suspicious_indicators else 'suspicious URLs'})"]
+        if has_auth_fail:
+            corrob_factors.append(f"reported authentication failure (SPF={auth_summary.spf_status}, DMARC={auth_summary.dmarc_status})")
+        elif has_auth_conflict:
+            corrob_factors.append("conflicting authentication assertions across headers")
+        elif not has_reported_pass:
+            corrob_factors.append("absence of passing domain authentication")
         rationale = (
-            "High-risk indicators are present based on multiple unmitigated independent signals: "
-            f"elevated text model similarity ({model_score:.3f}) corroborated by moderate URL anomalies "
-            f"({', '.join(url_summary.suspicious_indicators[:2]) if url_summary.suspicious_indicators else 'suspicious URLs'}) "
-            "on an email lacking verified boundary domain authentication."
+            f"High-risk indicators are present based on elevated text model similarity ({model_score:.3f}) "
+            f"corroborated by {'; '.join(corrob_factors)}."
         )
 
     # Condition 4: Authenticated email with elevated model score or moderate URL anomalies -> REVIEW_RECOMMENDED
@@ -529,14 +560,23 @@ def fuse_evidence(
                 "Manual analyst review is recommended."
             )
 
-    # Condition 5: Isolated high model score without independent corroboration
-    elif has_high_model and not has_high_url and not has_auth_fail:
+    # Condition 5: Elevated model score with reported auth pass or uncorroborated text similarity -> REVIEW_RECOMMENDED
+    elif has_high_model and not has_high_url:
         category = AssessmentCategory.REVIEW_RECOMMENDED
-        rationale = (
-            "Review recommended: DistilBERT text model flagged elevated phishing similarity, "
-            "but no corroborating structural URL or authentication failure evidence was observed. "
-            "Because model score is uncalibrated, analyst review is recommended."
-        )
+        if has_reported_pass:
+            rationale = (
+                f"Review recommended: DistilBERT text model flagged elevated phishing similarity ({model_score:.3f}), "
+                f"while email headers report passing domain authentication (SPF={auth_summary.spf_status}, "
+                f"DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}) without severe URL deception. "
+                "Because the model score is uncalibrated and reported authentication cannot be independently verified offline, "
+                "analyst review is recommended."
+            )
+        else:
+            rationale = (
+                f"Review recommended: DistilBERT text model flagged elevated phishing similarity ({model_score:.3f}), "
+                "but no corroborating severe structural URL or verified authentication failure evidence was observed. "
+                "Because model score is uncalibrated, analyst review is recommended."
+            )
 
     # Condition 6: Moderate URL anomalies, isolated auth failure, auth conflicts, borderline model, or model errors
     elif has_med_url or has_auth_conflict or has_auth_fail or has_med_model or has_model_error or (not is_boundary_trusted and auth_summary.has_valid_authentication):
@@ -547,15 +587,15 @@ def fuse_evidence(
         if has_auth_conflict:
             factors.append("contradictory authentication results across intermediate headers")
         if has_auth_fail:
-            factors.append(f"isolated authentication failure (SPF={auth_summary.spf_status}, DMARC={auth_summary.dmarc_status}) without corroborating URL/text risk")
+            factors.append(f"reported authentication failure (SPF={auth_summary.spf_status}, DMARC={auth_summary.dmarc_status}) without corroborating structural URL deception")
         if not is_boundary_trusted and auth_summary.has_valid_authentication:
-            factors.append("authentication pass assertions recorded only on untrusted upstream hops")
+            factors.append("domain authentication pass assertions are reported in headers but cannot be independently verified offline")
         if has_med_model:
             factors.append(f"borderline text model score ({model_score:.3f})")
         if has_model_error:
             factors.append("text model inference error")
         rationale = (
-            f"Review recommended due to anomalous or indeterminate forensic indicators requiring manual inspection: {'; '.join(factors)}."
+            f"Review recommended due to anomalous, unverified, or indeterminate forensic indicators requiring manual inspection: {'; '.join(factors)}."
         )
 
     # Condition 7: Low risk indicators (Verified boundary auth, clean/low-risk URLs, low or neutral model score)
@@ -570,10 +610,17 @@ def fuse_evidence(
     # Condition 8: Insufficient evidence in all other cases
     else:
         category = AssessmentCategory.INSUFFICIENT_EVIDENCE
-        rationale = (
-            "Insufficient evidence available to assign an elevated risk category. "
-            "Key forensic indicators (such as URLs, authentication headers, or public transit IPs) were absent or neutral."
-        )
+        if has_reported_pass:
+            rationale = (
+                "Insufficient evidence available to assign a verified low-risk or elevated-risk category. "
+                f"Receiver-reported domain authentication passed (SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}) "
+                "with negligible structural URL risk, but assertions cannot be independently established without live boundary trust."
+            )
+        else:
+            rationale = (
+                "Insufficient evidence available to assign an elevated risk category. "
+                "Key forensic indicators (such as URLs, authentication headers, or public transit IPs) were absent or neutral."
+            )
 
     reasoning = _format_forensic_explanation(
         category=category,

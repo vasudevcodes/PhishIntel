@@ -606,8 +606,8 @@ def analyze_url(url: str, url_index: int = 0, source: Optional[str] = None) -> U
             URLObservation(
                 rule_id="RULE_EXCESSIVE_URL_LENGTH",
                 rule_name="Excessive Non-Query URL Length",
-                severity=ObservationSeverity.MEDIUM,
-                description=f"The non-query structural portion of the URL is exceptionally long ({non_query_len} characters), indicating deep path obfuscation or multi-label spoofing.",
+                severity=ObservationSeverity.LOW,
+                description=f"The non-query structural portion of the URL is exceptionally long ({non_query_len} characters).",
             )
         )
     elif non_query_len > 150:
