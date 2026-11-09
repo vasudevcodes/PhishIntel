@@ -803,7 +803,6 @@ def test_phase10b_spoofed_provider_hostname_in_untrusted_upstream_header():
 def test_phase10b_broad_provider_owned_cidr_without_confirmed_mail_provenance():
     """
     Test 3: Broad provider-owned CIDR without confirmed mail-service provenance.
-    Verifies that IPs in broad general cloud netblocks (e.g., Google 142.250.0.0/15 or Azure 52.100.0.0/14):
     Verifies that IPs in broad general cloud netblocks or historical retired SPF ranges
     (e.g., Google 142.250.0.0/15 or historical 64.233.160.0/19):
     - are categorized as 'General Provider-Owned Network Range'
@@ -817,11 +816,6 @@ def test_phase10b_broad_provider_owned_cidr_without_confirmed_mail_provenance():
     assert c_intel_google.provider_source_url == "https://www.gstatic.com/ipranges/goog.json"
     assert "unconfirmed mail provenance" in c_intel_google.provider_indicator
 
-    c_intel_azure = analyze_candidate_ip("52.100.50.1", hop_index=0)
-    assert c_intel_azure.provider_match_category == "General Provider-Owned Network Range"
-    assert c_intel_azure.provider_confidence == "Low (Broad Provider Range)"
-    assert c_intel_azure.provider_source_url == "https://learn.microsoft.com/en-us/azure/virtual-network/service-tags-overview"
-    assert "unconfirmed mail provenance" in c_intel_azure.provider_indicator
     # 2. Historical retired Google SPF netblock
     c_intel_hist_google = analyze_candidate_ip("64.233.160.1", hop_index=0)
     assert c_intel_hist_google.provider_match_category == "General Provider-Owned Network Range"
@@ -839,13 +833,13 @@ def test_phase10b_broad_provider_owned_cidr_without_confirmed_mail_provenance():
 def test_phase10b_m365_exchange_online_mail_protection_reclassification():
     """
     Verifies that 52.100.0.0/14 is correctly classified as a documented Exchange Online
-    mail-protection range from M365 Endpoint ID 10 with High confidence.
+    mail-protection range from M365 Endpoint IDs 9 & 10 with High confidence.
     """
     c_intel_m365 = analyze_candidate_ip("52.100.50.1", hop_index=0)
     assert c_intel_m365.provider_match_category == "Confirmed Email-Delivery Network Range"
     assert c_intel_m365.provider_confidence == "High (Confirmed Mail Range)"
-    assert "M365 Endpoints ID 10" in c_intel_m365.provider_source_url or "learn.microsoft.com" in c_intel_m365.provider_source_url
-    assert c_intel_m365.provider_indicator == "Likely Microsoft 365 / Exchange infrastructure"
+    assert "learn.microsoft.com" in c_intel_m365.provider_source_url
+    assert "Exchange" in c_intel_m365.provider_indicator
 
 
 # Test 3C: SendGrid 167.89.0.0/17 Precision Verification (Not Broadened to /16)
@@ -925,6 +919,117 @@ def test_phase10b_non_routable_evidence_retained_with_unavailable_sender_attribu
     assert res_ll.candidate_ip_classification == "Link-Local"
     assert res_ll.is_candidate_routable is False
     assert res_ll.sender_identity_status == "Not established (Non-routable link-local address)"
+
+
+# =============================================================================
+# Action 3 Tests: Phase 2.5 Revised IP Catalogue Verification
+# =============================================================================
+
+def test_action3_microsoft_52_100_documented_association():
+    """
+    1. Microsoft 52.100.0.0/14 documented Exchange Online association.
+    Verifies that 52.100.50.1 matches Confirmed Email-Delivery Network Range with High confidence
+    referencing Microsoft's official M365 Endpoint URLs and IP ranges.
+    """
+    c = analyze_candidate_ip("52.100.50.1", hop_index=0)
+    assert c.provider_match_category == "Confirmed Email-Delivery Network Range"
+    assert c.provider_confidence == "High (Confirmed Mail Range)"
+    assert c.provider_source_url == "https://learn.microsoft.com/en-us/microsoft-365/enterprise/urls-and-ip-address-ranges"
+    assert "Microsoft 365 / Exchange Online" in c.role_hint
+
+
+def test_action3_microsoft_ip_matching_does_not_prove_sender_identity():
+    """
+    2. Microsoft IP matching must not prove actual sender identity.
+    Matching 52.100.0.0/14 indicates shared provider mail-protection connectivity,
+    NOT proof of actual sender identity or authorization.
+    """
+    c = IPCandidate(
+        ip="52.100.50.1",
+        version=4,
+        classification="Public",
+        hop_index=0,
+        source_header="Received: from mail-protection.outlook.com ([52.100.50.1]) by recipient.com"
+    )
+    res = analyze_ip_candidates([c], total_received_headers=1)
+    # Sole hop matching shared infrastructure must not declare originating sender proven
+    assert res.origin_attribution_status == "UNAVAILABLE"
+    assert res.sender_identity_status == "Not established"
+    assert "not proof of actual sender authorization" in res.candidates[0].provider_indicator
+    assert "Shared multi-tenant infrastructure cannot prove individual sender-origin attribution" in res.origin_assessment
+
+
+def test_action3_microsoft_service_scope_and_confidence():
+    """
+    3. Microsoft service scope and confidence must be accurate.
+    Verifies that service scope reflects M365 Endpoints ID 9 & 10 mail-protection connectivity.
+    """
+    c = analyze_candidate_ip("52.100.0.1", hop_index=0)
+    assert c.provider_confidence == "High (Confirmed Mail Range)"
+    assert "mail-protection connectivity" in c.provider_indicator
+
+
+def test_action3_sendgrid_17_matching():
+    """
+    4. SendGrid 167.89.0.0/17 matching.
+    Verifies that 167.89.77.213 (inside 167.89.0.0/17) matches SendGrid confirmed mail range with High confidence.
+    """
+    c = analyze_candidate_ip("167.89.77.213", hop_index=0)
+    assert c.provider_match_category == "Confirmed Email-Delivery Network Range"
+    assert c.provider_confidence == "High (Confirmed Mail Range)"
+    assert c.provider_source_url == "https://docs.sendgrid.com/ui/account-and-settings/ip-addresses"
+    assert "SendGrid" in c.role_hint
+
+
+def test_action3_sendgrid_200_1_not_matching_17():
+    """
+    5. SendGrid 167.89.200.1 not matching the /17.
+    Verifies that 167.89.200.1 (outside 167.89.0.0/17) does NOT match any SendGrid confirmed mail range.
+    """
+    c = analyze_candidate_ip("167.89.200.1", hop_index=0)
+    assert c.provider_match_category is None
+    assert c.provider_confidence is None
+    assert c.provider_indicator is None
+
+
+def test_action3_no_overlapping_obsolete_16_entry():
+    """
+    6. No overlapping obsolete /16 entry.
+    Verifies that PROVIDER_GATEWAY_NETWORKS does not contain 167.89.0.0/16.
+    """
+    import ipaddress
+    from app.services.ip_intelligence import PROVIDER_GATEWAY_NETWORKS
+    
+    obsolete_net = ipaddress.IPv4Network("167.89.0.0/16")
+    exact_net = ipaddress.IPv4Network("167.89.0.0/17")
+    
+    networks = [e.network for e in PROVIDER_GATEWAY_NETWORKS]
+    assert obsolete_net not in networks, "Obsolete 167.89.0.0/16 must not be present in PROVIDER_GATEWAY_NETWORKS"
+    assert exact_net in networks, "Documented 167.89.0.0/17 must be present in PROVIDER_GATEWAY_NETWORKS"
+
+
+def test_action3_unknown_ips_remain_unknown():
+    """
+    7. Unknown IPs remain UNKNOWN.
+    Verifies that arbitrary uncatalogued public IPs without matching provider patterns
+    produce no provider match and maintain unverified attribution status.
+    """
+    c = analyze_candidate_ip("93.184.216.34", hop_index=0)
+    assert c.provider_match_category is None
+    assert c.provider_confidence is None
+    assert c.provider_indicator is None
+
+    cand = IPCandidate(
+        ip="93.184.216.34",
+        version=4,
+        classification="Public",
+        hop_index=0,
+        source_header="Received: from example.com ([93.184.216.34])"
+    )
+    res = analyze_ip_candidates([cand], total_received_headers=1)
+    assert res.origin_attribution_status == "AVAILABLE_UNVERIFIED"
+    assert "Unverified" in res.sender_identity_status
+
 
 
 

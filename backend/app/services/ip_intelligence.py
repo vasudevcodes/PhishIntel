@@ -133,13 +133,6 @@ class ProviderMatchResult(NamedTuple):
 #   guarantee complete coverage. Matching a provider CIDR or hostname pattern indicates
 #   likely shared provider infrastructure, NOT proof that an IP performed or authorized delivery.
 PROVIDER_GATEWAY_NETWORKS: List[ProviderNetworkEntry] = [
-    # Google Mail / Google Workspace (Confirmed email-delivery ranges via SPF netblocks)
-    ProviderNetworkEntry(ipaddress.IPv4Network("209.85.128.0/17"), "Google Mail / Workspace", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://support.google.com/a/answer/60764", "2026-11-05", "SPF _netblocks.google.com Snapshot v1.0", "Likely Google infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("74.125.0.0/16"), "Google Mail / Workspace", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://support.google.com/a/answer/60764", "2026-11-05", "SPF _netblocks.google.com Snapshot v1.0", "Likely Google infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("64.233.160.0/19"), "Google Mail / Workspace", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://support.google.com/a/answer/60764", "2026-11-05", "SPF _netblocks.google.com Snapshot v1.0", "Likely Google infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("66.249.80.0/20"), "Google Mail / Workspace", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://support.google.com/a/answer/60764", "2026-11-05", "SPF _netblocks.google.com Snapshot v1.0", "Likely Google infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("108.177.0.0/17"), "Google Mail / Workspace", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://support.google.com/a/answer/60764", "2026-11-05", "SPF _netblocks.google.com Snapshot v1.0", "Likely Google infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv6Network("2607:f8b0::/32"), "Google Mail / Workspace", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://support.google.com/a/answer/60764", "2026-11-05", "SPF _netblocks6.google.com Snapshot v1.0", "Likely Google infrastructure"),
     # -------------------------------------------------------------------------
     # 1. Google Mail / Google Workspace: Current SPF-Confirmed Sending Subnets
     # Source: https://support.google.com/a/answer/60764
@@ -228,19 +221,14 @@ PROVIDER_GATEWAY_NETWORKS: List[ProviderNetworkEntry] = [
         "Likely Google infrastructure",
     ),
 
-    # Google Broad Provider-Owned Netblocks (General cloud ranges, unconfirmed mail-only provenance -> downgraded)
-    ProviderNetworkEntry(ipaddress.IPv4Network("142.250.0.0/15"), "Google Mail / Workspace", ProviderCategory.GENERAL_PROVIDER_RANGE, ProviderConfidence.LOW_GENERAL, "https://www.gstatic.com/ipranges/goog.json", "2026-11-05", "goog.json Snapshot v1.0", "Likely general Google infrastructure (unconfirmed mail provenance)"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("172.217.0.0/16"), "Google Mail / Workspace", ProviderCategory.GENERAL_PROVIDER_RANGE, ProviderConfidence.LOW_GENERAL, "https://www.gstatic.com/ipranges/goog.json", "2026-11-05", "goog.json Snapshot v1.0", "Likely general Google infrastructure (unconfirmed mail provenance)"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("172.253.0.0/16"), "Google Mail / Workspace", ProviderCategory.GENERAL_PROVIDER_RANGE, ProviderConfidence.LOW_GENERAL, "https://www.gstatic.com/ipranges/goog.json", "2026-11-05", "goog.json Snapshot v1.0", "Likely general Google infrastructure (unconfirmed mail provenance)"),
     # -------------------------------------------------------------------------
     # 2. Microsoft 365 / Exchange Online: Documented Mail Delivery & Protection Ranges
     # Source: https://learn.microsoft.com/en-us/microsoft-365/enterprise/urls-and-ip-address-ranges
-    # Published Endpoint: Microsoft 365 Worldwide IP Endpoints JSON feed (ID 10, Exchange)
-    # Service Scope: Exchange Online, Exchange Online Protection (EOP), Hybrid Mail Flow (TCP 25)
+    # Published Endpoint: Microsoft 365 Worldwide IP Endpoints JSON feed (ID 9 & 10, Exchange)
+    # Service Scope: Exchange Online, Exchange Online Protection (EOP), Inbound/Hybrid Mail Flow (TCP 25)
     # Snapshot Date: 2026-11-05
     # Important Note: An Exchange Online network match indicates likely shared Microsoft
-    # infrastructure, NOT proof of genuine sender authorization or actual email delivery.
-    # General Microsoft Azure cloud ranges outside Endpoint ID 10 are NOT classified as mail infrastructure.
+    # mail-protection infrastructure, NOT proof of genuine sender authorization or actual email delivery.
     # -------------------------------------------------------------------------
     ProviderNetworkEntry(
         ipaddress.IPv4Network("40.92.0.0/15"),
@@ -259,7 +247,7 @@ PROVIDER_GATEWAY_NETWORKS: List[ProviderNetworkEntry] = [
         ProviderConfidence.HIGH_CONFIRMED,
         "https://learn.microsoft.com/en-us/microsoft-365/enterprise/urls-and-ip-address-ranges",
         "2026-11-05",
-        "M365 Endpoints ID 10 (Exchange Online Protection / Mail flow)",
+        "M365 Endpoints ID 10 (Exchange Online Protection Outbound)",
         "Likely Microsoft 365 / Exchange infrastructure",
     ),
     ProviderNetworkEntry(
@@ -269,8 +257,8 @@ PROVIDER_GATEWAY_NETWORKS: List[ProviderNetworkEntry] = [
         ProviderConfidence.HIGH_CONFIRMED,
         "https://learn.microsoft.com/en-us/microsoft-365/enterprise/urls-and-ip-address-ranges",
         "2026-11-05",
-        "M365 Endpoints ID 10 (Exchange Online Protection / Hybrid TCP 25)",
-        "Likely Microsoft 365 / Exchange infrastructure",
+        "M365 Endpoints ID 9 & 10 (Exchange Online Protection / Mail flow TCP 25)",
+        "Likely Microsoft 365 / Exchange Online protection infrastructure (mail-protection connectivity; not proof of actual sender authorization)",
     ),
     ProviderNetworkEntry(
         ipaddress.IPv4Network("104.47.0.0/17"),
@@ -303,12 +291,6 @@ PROVIDER_GATEWAY_NETWORKS: List[ProviderNetworkEntry] = [
         "Likely Microsoft 365 / Exchange infrastructure",
     ),
 
-    # SendGrid / Twilio (Confirmed sending IP allocations)
-    ProviderNetworkEntry(ipaddress.IPv4Network("167.89.0.0/16"), "SendGrid", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://docs.sendgrid.com/ui/account-and-settings/ip-addresses", "2026-11-05", "SendGrid Docs Snapshot v1.0", "Likely SendGrid infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("198.21.0.0/21"), "SendGrid", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://docs.sendgrid.com/ui/account-and-settings/ip-addresses", "2026-11-05", "SendGrid Docs Snapshot v1.0", "Likely SendGrid infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("198.37.144.0/20"), "SendGrid", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://docs.sendgrid.com/ui/account-and-settings/ip-addresses", "2026-11-05", "SendGrid Docs Snapshot v1.0", "Likely SendGrid infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("149.72.0.0/16"), "SendGrid", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://docs.sendgrid.com/ui/account-and-settings/ip-addresses", "2026-11-05", "SendGrid Docs Snapshot v1.0", "Likely SendGrid infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("168.245.0.0/17"), "SendGrid", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://docs.sendgrid.com/ui/account-and-settings/ip-addresses", "2026-11-05", "SendGrid Docs Snapshot v1.0", "Likely SendGrid infrastructure"),
     # -------------------------------------------------------------------------
     # 3. SendGrid / Twilio: Documented & Published SPF Sending Netblocks
     # Source: https://docs.sendgrid.com/ui/account-and-settings/ip-addresses
@@ -378,10 +360,6 @@ PROVIDER_GATEWAY_NETWORKS: List[ProviderNetworkEntry] = [
         "Likely SendGrid infrastructure",
     ),
 
-    # Microsoft 365 / Exchange Online (Confirmed mail delivery ranges)
-    ProviderNetworkEntry(ipaddress.IPv4Network("40.92.0.0/15"), "Microsoft 365 / Exchange Online", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://learn.microsoft.com/en-us/microsoft-365/enterprise/urls-and-ip-address-ranges", "2026-11-05", "M365 Endpoints ID 1 (Exchange)", "Likely Microsoft 365 / Exchange infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("40.107.0.0/16"), "Microsoft 365 / Exchange Online", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://learn.microsoft.com/en-us/microsoft-365/enterprise/urls-and-ip-address-ranges", "2026-11-05", "M365 Endpoints ID 1 (Exchange)", "Likely Microsoft 365 / Exchange infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("104.47.0.0/17"), "Microsoft 365 / Exchange Online", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://learn.microsoft.com/en-us/microsoft-365/enterprise/urls-and-ip-address-ranges", "2026-11-05", "Exchange Online Protection Outbound", "Likely Microsoft 365 / Exchange infrastructure"),
     # -------------------------------------------------------------------------
     # 4. Amazon SES: Confirmed Email-Delivery Ranges
     # Source: https://ip-ranges.amazonaws.com/ip-ranges.json
@@ -409,8 +387,6 @@ PROVIDER_GATEWAY_NETWORKS: List[ProviderNetworkEntry] = [
         "Likely Amazon SES infrastructure",
     ),
 
-    # Microsoft Broad Provider-Owned Netblock (General Azure Cloud range, unconfirmed mail-service provenance -> downgraded)
-    ProviderNetworkEntry(ipaddress.IPv4Network("52.100.0.0/14"), "Microsoft 365 / Exchange Online", ProviderCategory.GENERAL_PROVIDER_RANGE, ProviderConfidence.LOW_GENERAL, "https://learn.microsoft.com/en-us/azure/virtual-network/service-tags-overview", "2026-11-05", "Azure IP Ranges Snapshot v1.0", "Likely general Microsoft Azure infrastructure (unconfirmed mail provenance)"),
     # -------------------------------------------------------------------------
     # 5. Mailgun: Confirmed Sending IP Netblocks
     # Source: https://documentation.mailgun.com/docs/mailgun/user-manual/sending-messages/
@@ -438,13 +414,6 @@ PROVIDER_GATEWAY_NETWORKS: List[ProviderNetworkEntry] = [
         "Likely Mailgun infrastructure",
     ),
 
-    # Amazon SES (Confirmed email-delivery ranges)
-    ProviderNetworkEntry(ipaddress.IPv4Network("54.240.0.0/18"), "Amazon SES", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://ip-ranges.amazonaws.com/ip-ranges.json", "2026-11-05", "AWS ip-ranges.json (AMAZON_SES)", "Likely Amazon SES infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("69.169.224.0/20"), "Amazon SES", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://ip-ranges.amazonaws.com/ip-ranges.json", "2026-11-05", "AWS ip-ranges.json (AMAZON_SES)", "Likely Amazon SES infrastructure"),
-
-    # Mailgun (Confirmed sending IP netblocks)
-    ProviderNetworkEntry(ipaddress.IPv4Network("159.112.240.0/20"), "Mailgun", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://documentation.mailgun.com/docs/mailgun/user-manual/sending-messages/", "2026-11-05", "Mailgun Docs Snapshot v1.0", "Likely Mailgun infrastructure"),
-    ProviderNetworkEntry(ipaddress.IPv4Network("198.61.254.0/24"), "Mailgun", ProviderCategory.CONFIRMED_MAIL_RANGE, ProviderConfidence.HIGH_CONFIRMED, "https://documentation.mailgun.com/docs/mailgun/user-manual/sending-messages/", "2026-11-05", "Mailgun Docs Snapshot v1.0", "Likely Mailgun infrastructure"),
     # -------------------------------------------------------------------------
     # 6. Google: Historical SPF Netblocks & General Provider-Owned Cloud Ranges
     # Note: These are separated from current SPF-confirmed entries. Historical
