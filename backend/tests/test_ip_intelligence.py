@@ -76,6 +76,7 @@ def test_public_ipv4_and_ipv6():
     # Public IPv4
     c_v4, obj_v4 = classify_ip_string("8.8.8.8")
     assert c_v4 == IPClassification.PUBLIC
+    assert obj_v4 is not None
     assert obj_v4.version == 4
 
     res_v4 = analyze_candidate_ip("8.8.8.8", hop_index=0)
@@ -86,6 +87,7 @@ def test_public_ipv4_and_ipv6():
     # Public IPv6
     c_v6, obj_v6 = classify_ip_string("2607:f8b0:4005:805::200e")
     assert c_v6 == IPClassification.PUBLIC
+    assert obj_v6 is not None
     assert obj_v6.version == 6
 
     res_v6 = analyze_candidate_ip("2607:f8b0:4005:805::200e", hop_index=1)
@@ -100,6 +102,7 @@ def test_private_ipv4_and_ipv6_unique_local():
     for ip in ["10.0.1.5", "172.16.20.1", "192.168.1.254"]:
         c, obj = classify_ip_string(ip)
         assert c == IPClassification.PRIVATE
+        assert obj is not None
         assert obj.version == 4
         res = analyze_candidate_ip(ip)
         assert res.classification == IPClassification.PRIVATE
@@ -109,6 +112,7 @@ def test_private_ipv4_and_ipv6_unique_local():
     # RFC 4193 Unique Local IPv6 (fc00::/7)
     c_ula, obj_ula = classify_ip_string("fd12:3456:789a:1::1")
     assert c_ula == IPClassification.PRIVATE
+    assert obj_ula is not None
     assert obj_ula.version == 6
     res_ula = analyze_candidate_ip("fd12:3456:789a:1::1")
     assert res_ula.classification == IPClassification.PRIVATE
@@ -790,6 +794,7 @@ def test_phase10b_spoofed_provider_hostname_in_untrusted_upstream_header():
     cand_1 = result.candidates[1]
     assert cand_1.provider_match_category == "Unverified Upstream Hostname Indicator (Untrusted)"
     assert cand_1.provider_confidence == "UNKNOWN"
+    assert cand_1.provider_indicator is not None
     assert "Unverified Google Mail / Workspace hostname indicator" in cand_1.provider_indicator
 
     # Origin attribution is conservatively UNAVAILABLE
@@ -814,18 +819,21 @@ def test_phase10b_broad_provider_owned_cidr_without_confirmed_mail_provenance():
     assert c_intel_google.provider_match_category == "General Provider-Owned Network Range"
     assert c_intel_google.provider_confidence == "Low (Broad Provider Range)"
     assert c_intel_google.provider_source_url == "https://www.gstatic.com/ipranges/goog.json"
+    assert c_intel_google.provider_indicator is not None
     assert "unconfirmed mail provenance" in c_intel_google.provider_indicator
 
     # 2. Historical retired Google SPF netblock
     c_intel_hist_google = analyze_candidate_ip("64.233.160.1", hop_index=0)
     assert c_intel_hist_google.provider_match_category == "General Provider-Owned Network Range"
     assert c_intel_hist_google.provider_confidence == "Low (Broad Provider Range)"
+    assert c_intel_hist_google.provider_indicator is not None
     assert "unconfirmed mail provenance" in c_intel_hist_google.provider_indicator
 
     # 3. Google IPv6: broad ARIN allocation outside current /36 SPF netblock
     c_intel_hist_v6 = analyze_candidate_ip("2607:f8b0:1000::1", hop_index=0)
     assert c_intel_hist_v6.provider_match_category == "General Provider-Owned Network Range"
     assert c_intel_hist_v6.provider_confidence == "Low (Broad Provider Range)"
+    assert c_intel_hist_v6.provider_indicator is not None
     assert "unconfirmed mail provenance" in c_intel_hist_v6.provider_indicator
 
 
@@ -838,7 +846,9 @@ def test_phase10b_m365_exchange_online_mail_protection_reclassification():
     c_intel_m365 = analyze_candidate_ip("52.100.50.1", hop_index=0)
     assert c_intel_m365.provider_match_category == "Confirmed Email-Delivery Network Range"
     assert c_intel_m365.provider_confidence == "High (Confirmed Mail Range)"
+    assert c_intel_m365.provider_source_url is not None
     assert "learn.microsoft.com" in c_intel_m365.provider_source_url
+    assert c_intel_m365.provider_indicator is not None
     assert "Exchange" in c_intel_m365.provider_indicator
 
 
@@ -955,6 +965,7 @@ def test_action3_microsoft_ip_matching_does_not_prove_sender_identity():
     # Sole hop matching shared infrastructure must not declare originating sender proven
     assert res.origin_attribution_status == "UNAVAILABLE"
     assert res.sender_identity_status == "Not established"
+    assert res.candidates[0].provider_indicator is not None
     assert "not proof of actual sender authorization" in res.candidates[0].provider_indicator
     assert "Shared multi-tenant infrastructure cannot prove individual sender-origin attribution" in res.origin_assessment
 
@@ -966,6 +977,7 @@ def test_action3_microsoft_service_scope_and_confidence():
     """
     c = analyze_candidate_ip("52.100.0.1", hop_index=0)
     assert c.provider_confidence == "High (Confirmed Mail Range)"
+    assert c.provider_indicator is not None
     assert "mail-protection connectivity" in c.provider_indicator
 
 

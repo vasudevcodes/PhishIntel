@@ -758,7 +758,7 @@ def analyze_candidate_ip(
         geo_status, geo_data = reader.lookup(ip_str)
         if geo_status == GeolocationStatus.DATABASE_UNAVAILABLE:
             geo_explanation = "Globally routable public IP. Local offline GeoLite2 database is not installed or configured."
-        elif geo_status == GeolocationStatus.LOOKUP_SUCCESS:
+        elif geo_status == GeolocationStatus.LOOKUP_SUCCESS and geo_data is not None:
             geo_explanation = f"Offline geolocation derived: {geo_data.country_name or 'Unknown Country'}, {geo_data.city_name or 'Unknown City'}."
         else:
             geo_explanation = "Public IP not found in local offline database."
@@ -905,7 +905,11 @@ def analyze_ip_candidates(
     # Evaluation Scenario 1: Missing earlier transit hop IP evidence
     # An earlier transit hop exists upstream, but contains no extractable IP literal.
     # Never fall back to boundary/intermediate relay!
-    if highest_hop_index is not None and highest_hop_index < earliest_recorded_hop_idx:
+    if (
+        highest_hop_index is not None
+        and highest_hop_index < earliest_recorded_hop_idx
+        and chosen_candidate is not None
+    ):
         origin_candidate = None
         origin_attribution_status = "UNAVAILABLE"
         sender_identity_status = "Not established"
