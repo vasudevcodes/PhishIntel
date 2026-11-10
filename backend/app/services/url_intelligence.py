@@ -15,7 +15,7 @@ Safety Guarantees:
 from datetime import datetime, timezone
 import ipaddress
 import re
-from typing import List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from app.schemas.email import EmailAnalysisResponse, ExtractedURL
@@ -74,6 +74,52 @@ SPECIAL_PURPOSE_NETWORKS = (
     ipaddress.IPv4Network("240.0.0.0/4"),     # Reserved (RFC 1112)
     ipaddress.IPv4Network("0.0.0.0/8"),       # Unspecified / "This" network (RFC 1122)
 )
+
+# Standard Identity Provider (IdP) domains where login hints / federated email params are expected
+WELL_KNOWN_IDP_DOMAINS: Set[str] = {
+    "accounts.google.com",
+    "login.microsoftonline.com",
+    "login.live.com",
+    "appleid.apple.com",
+    "github.com",
+    "auth0.com",
+    "okta.com",
+}
+
+# Major cloud CDN and asset domains where content-addressable storage paths commonly exceed 200 chars
+KNOWN_ASSET_CDN_DOMAINS: Set[str] = {
+    "adobeaemcloud.com",
+    "sendgrid.net",
+    "cloudfront.net",
+    "googleusercontent.com",
+    "akamaihd.net",
+    "azureedge.net",
+    "licdn.com",
+    "oaistatic.com",
+    "gstatic.com",
+    "fbcdn.net",
+    "twimg.com",
+}
+
+# High-profile targeted brands for lookalike / typosquatting detection
+TARGETED_BRAND_KEYWORDS: Dict[str, str] = {
+    "paypal": "paypal.com",
+    "microsoft": "microsoft.com",
+    "office365": "office.com",
+    "apple": "apple.com",
+    "netflix": "netflix.com",
+    "amazon": "amazon.com",
+    "chase": "chase.com",
+    "wellsfargo": "wellsfargo.com",
+    "bankofamerica": "bankofamerica.com",
+    "docusign": "docusign.com",
+    "dropbox": "dropbox.com",
+    "dhl": "dhl.com",
+    "fedex": "fedex.com",
+    "usps": "usps.com",
+    "coinbase": "coinbase.com",
+    "binance": "binance.com",
+}
 
 
 def is_valid_ipv4_or_ipv6(host_str: str) -> Tuple[bool, Optional[int], HostClassification]:
@@ -205,7 +251,13 @@ def calculate_heuristic_score(observations: List[URLObservation]) -> Tuple[int, 
     return score, category
 
 
-def analyze_url(url: str, url_index: int = 0, source: Optional[str] = None) -> URLAnalysisResult:
+def analyze_url(
+    url: str,
+    url_index: int = 0,
+    source: Optional[str] = None,
+    anchor_text: Optional[str] = None,
+    sender_domain: Optional[str] = None,
+) -> URLAnalysisResult:
     """
     Performs comprehensive, deterministic, local analysis on a single URL string.
     Zero network access: does not resolve DNS, follow redirects, or query external APIs.
@@ -549,6 +601,52 @@ def analyze_url(url: str, url_index: int = 0, source: Optional[str] = None) -> U
                 )
             )
 
+        # Lookalike / Impersonation Brand Domain Check
+        norm_host_lower = normalized_host.lower()
+        reg_host_parts = norm_host_lower.split(".")
+        reg_host = ".".join(reg_host_parts[-2:]) if len(reg_host_parts) >= 2 else norm_host_lower
+
+        # Leetspeak translation for brand homoglyph/typosquat matching (e.g. paypa1 -> paypal)
+        leetspeak_host = (
+            norm_host_lower
+            .replace("1", "l")
+            .replace("0", "o")
+            .replace("5", "s")
+            .replace("vv", "w")
+            .replace("@", "a")
+        )
+
+        for brand_key, official_dom in TARGETED_BRAND_KEYWORDS.items():
+            if brand_key in norm_host_lower or brand_key in leetspeak_host:
+                official_reg = ".".join(official_dom.split(".")[-2:])
+                if reg_host != official_reg and not norm_host_lower.endswith("." + official_dom):
+                    observations.append(
+                        URLObservation(
+                            rule_id="RULE_LOOKALIKE_IMPERSONATION_DOMAIN",
+                            rule_name="Lookalike / Brand Impersonation Domain",
+                            severity=ObservationSeverity.HIGH,
+                            description=f"Destination domain '{normalized_host}' contains targeted brand keyword '{brand_key}' but does not belong to the official brand domain ('{official_dom}').",
+                        )
+                    )
+                    break
+
+        # Deceptive Displayed Link Check (Anchor text vs Href destination)
+        if anchor_text:
+            anchor_clean = anchor_text.strip()
+            anchor_match = re.search(r"(?:https?://)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", anchor_clean)
+            if anchor_match:
+                anchor_host = anchor_match.group(1).lower().rstrip(".")
+                anchor_reg = ".".join(anchor_host.split(".")[-2:]) if len(anchor_host.split(".")) >= 2 else anchor_host
+                if anchor_reg != reg_host and not norm_host_lower.endswith("." + anchor_host) and not anchor_host.endswith("." + norm_host_lower):
+                    observations.append(
+                        URLObservation(
+                            rule_id="RULE_DECEPTIVE_DISPLAYED_LINK",
+                            rule_name="Deceptive Displayed Hyperlink",
+                            severity=ObservationSeverity.HIGH,
+                            description=f"Anchor text visually displays destination '{anchor_host}', but the underlying link navigates to an entirely different host ('{normalized_host}'). This visual discrepancy is a primary indicator of link spoofing.",
+                        )
+                    )
+
     # 8. Lengths, Percent-Encoding, Path & Query
     url_len = len(trimmed_url)
     dots_in_url = trimmed_url.count(".")
@@ -557,14 +655,35 @@ def analyze_url(url: str, url_index: int = 0, source: Optional[str] = None) -> U
     has_double_encoding = bool(DOUBLE_ENCODING_REGEX.search(trimmed_url))
 
     if has_double_encoding:
-        observations.append(
-            URLObservation(
-                rule_id="RULE_DOUBLE_PERCENT_ENCODING",
-                rule_name="Double Percent-Encoding Detected",
-                severity=ObservationSeverity.MEDIUM,
-                description="The URL contains double percent-encoding sequences (e.g., %252e), which can be used to bypass web application filters and signature detection.",
+        double_in_path = bool(DOUBLE_ENCODING_REGEX.search(path or ""))
+        double_in_query = bool(DOUBLE_ENCODING_REGEX.search(query or ""))
+        if double_in_path:
+            observations.append(
+                URLObservation(
+                    rule_id="RULE_DOUBLE_PERCENT_ENCODING",
+                    rule_name="Double Percent-Encoding in URL Path",
+                    severity=ObservationSeverity.MEDIUM,
+                    description="The URL path contains double percent-encoding sequences (e.g., %252e), which can be used to bypass web application filters and path traversal protections.",
+                )
             )
-        )
+        elif double_in_query:
+            observations.append(
+                URLObservation(
+                    rule_id="RULE_REDIRECT_QUERY_ENCODING",
+                    rule_name="Nested Redirect Parameter Encoding",
+                    severity=ObservationSeverity.LOW,
+                    description="The URL query string contains nested encoding for an embedded redirect parameter, typical of marketing delivery routers and ESP click tracking.",
+                )
+            )
+        else:
+            observations.append(
+                URLObservation(
+                    rule_id="RULE_DOUBLE_PERCENT_ENCODING",
+                    rule_name="Double Percent-Encoding Detected",
+                    severity=ObservationSeverity.MEDIUM,
+                    description="The URL contains double percent-encoding sequences.",
+                )
+            )
     elif percent_encodings >= 3:
         observations.append(
             URLObservation(
@@ -580,16 +699,32 @@ def analyze_url(url: str, url_index: int = 0, source: Optional[str] = None) -> U
     has_query = bool(query)
     non_query_len = url_len - query_len - (1 if has_query else 0)
 
+    # Check for recognized enterprise asset or CDN domain
+    is_cdn_host = any(
+        (normalized_host or "").lower().endswith("." + cdn) or (normalized_host or "").lower() == cdn
+        for cdn in KNOWN_ASSET_CDN_DOMAINS
+    )
+
     # Path length evaluation
     if path_len > 200:
-        observations.append(
-            URLObservation(
-                rule_id="RULE_EXCESSIVE_PATH_LENGTH",
-                rule_name="Excessive URL Path Length",
-                severity=ObservationSeverity.MEDIUM,
-                description=f"The URL path is exceptionally long ({path_len} characters), a pattern often used in multi-stage phishing payload routing or deep directory obfuscation.",
+        if is_cdn_host:
+            observations.append(
+                URLObservation(
+                    rule_id="RULE_LONG_PATH",
+                    rule_name="Long CDN Asset Path",
+                    severity=ObservationSeverity.INFO,
+                    description=f"The URL path is long ({path_len} characters) on a recognized enterprise asset or CDN domain.",
+                )
             )
-        )
+        else:
+            observations.append(
+                URLObservation(
+                    rule_id="RULE_EXCESSIVE_PATH_LENGTH",
+                    rule_name="Excessive URL Path Length",
+                    severity=ObservationSeverity.MEDIUM,
+                    description=f"The URL path is exceptionally long ({path_len} characters), a pattern often used in multi-stage phishing payload routing or deep directory obfuscation.",
+                )
+            )
     elif path_len > 100:
         observations.append(
             URLObservation(
@@ -773,14 +908,43 @@ def analyze_url(url: str, url_index: int = 0, source: Optional[str] = None) -> U
             # Check for embedded email address in query string
             unquoted_query = unquote(query)
             if EMAIL_PATTERN_REGEX.search(unquoted_query):
-                observations.append(
-                    URLObservation(
-                        rule_id="RULE_EMAIL_IN_QUERY",
-                        rule_name="Email Address Present in Query Parameters",
-                        severity=ObservationSeverity.MEDIUM,
-                        description="The query string contains an embedded email address. Credential harvesting campaigns commonly pre-populate target recipient addresses via query parameters.",
+                norm_host_lower = (normalized_host or "").lower()
+                reg_norm = ".".join(norm_host_lower.split(".")[-2:]) if len(norm_host_lower.split(".")) >= 2 else norm_host_lower
+                sender_norm = ".".join((sender_domain or "").lower().split(".")[-2:]) if len((sender_domain or "").split(".")) >= 2 else (sender_domain or "").lower()
+
+                is_sender_aligned = bool(
+                    sender_norm and (
+                        reg_norm == sender_norm
+                        or (sender_norm == "openai.com" and reg_norm in ("openai.com", "chatgpt.com"))
+                        or (sender_norm == "linkedin.com" and reg_norm in ("linkedin.com", "licdn.com"))
+                        or (sender_norm == "google.com" and reg_norm in ("google.com", "youtube.com", "gmail.com"))
                     )
                 )
+                is_known_idp = any(norm_host_lower == idp or norm_host_lower.endswith("." + idp) for idp in WELL_KNOWN_IDP_DOMAINS)
+
+                has_login_hint_param = any(
+                    k.lower() in ("login_hint", "email", "u", "user", "username", "account")
+                    for k in parsed_query.keys()
+                )
+
+                if (is_sender_aligned or is_known_idp) and has_login_hint_param:
+                    observations.append(
+                        URLObservation(
+                            rule_id="RULE_OIDC_LOGIN_HINT_PARAMETER",
+                            rule_name="Standard OIDC / Identity Hint in Query",
+                            severity=ObservationSeverity.INFO,
+                            description=f"The query string specifies an identity hint parameter on a recognized or sender-aligned authentication domain ('{normalized_host}'). Standard federated authentication protocol behavior.",
+                        )
+                    )
+                else:
+                    observations.append(
+                        URLObservation(
+                            rule_id="RULE_EMAIL_IN_QUERY",
+                            rule_name="Email Address Present in Query Parameters",
+                            severity=ObservationSeverity.MEDIUM,
+                            description="The query string contains an embedded email address on an unaligned or external destination host. Credential harvesting campaigns commonly pre-populate target recipient addresses via query parameters.",
+                        )
+                    )
         except Exception:
             pass
 
@@ -930,10 +1094,14 @@ def analyze_urls(urls: List[str]) -> URLBatchAnalysisResult:
     )
 
 
-def analyze_email_extracted_urls(email_urls: List[ExtractedURL]) -> URLBatchAnalysisResult:
+def analyze_email_extracted_urls(
+    email_urls: List[ExtractedURL],
+    sender_domain: Optional[str] = None,
+) -> URLBatchAnalysisResult:
     """
     Analyzes ExtractedURL models from the Phase 1 email parser,
-    preserving each URL's origin source ('plain_text', 'html_href', or 'both').
+    preserving each URL's origin source ('plain_text', 'html_href', or 'both')
+    and visual anchor text for link spoofing detection.
     """
     timestamp = datetime.now(timezone.utc).isoformat()
 
@@ -960,7 +1128,13 @@ def analyze_email_extracted_urls(email_urls: List[ExtractedURL]) -> URLBatchAnal
     highest_category = HeuristicRiskCategory.INFO
 
     for idx, ext in enumerate(email_urls):
-        res = analyze_url(ext.url, url_index=idx, source=ext.source)
+        res = analyze_url(
+            ext.url,
+            url_index=idx,
+            source=ext.source,
+            anchor_text=getattr(ext, "anchor_text", None),
+            sender_domain=sender_domain,
+        )
         results.append(res)
 
         cat_str = res.heuristic_risk_category.value

@@ -1,0 +1,550 @@
+Delivered-To: gamingkong052@gmail.com
+Received: by 2002:a05:6400:6865:b0:2e0:7416:be12 with SMTP id q37csp1254021ecq;
+        Fri, 11 Sep 2026 21:50:01 -0700 (PDT)
+X-Received: by 2002:a05:6a21:3204:b0:3cc:f0c7:5999 with SMTP id adf61e73a8af0-3db0e40abdcmr2164319637.16.1789188600935;
+        Fri, 11 Sep 2026 21:50:00 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789188600; cv=none;
+        d=google.com; s=arc-20260327;
+        b=LcbzTbK/i3ovBLIc7SnD00rQovBPJL02n6Jr4wucYcVBvEww2z0pDNIcQd47ntcDog
+         2+Xo9T0jho0jsRmTJc6zy/yTHYK2jQWguuUpNxObtYz/VeH5vhPrMlVhmnM/9S3WiRJ7
+         JG/Xkefk6/UKPBSsd0PYp9bICA91Bib+TOFPUb6hQjLvtZ7ufoB4Tf6FK4QKkRiaw9Zm
+         ar4P7N60QKALQbNfzIxinVwJ/a7bvV03Zzo5jjo/xmcso61ZyCuukfMhbmLzCgMgxDMO
+         NAVOgVrWaf2S4nsCVqRlHutC5elg6/8Mgw25XSImUPCe/45DoKsfdppabBz1zEU8zx0p
+         8pJA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=message-id:reply-to:to:from:subject:mime-version:date:sender
+         :dkim-signature:dkim-signature;
+        bh=sfTUAjfKDYN3Rg3YMKHfKPbh1zcFu3/qnX/JeXdgeXM=;
+        fh=Oyof/pL9VWbAKHL0j19HkfrJcZ4Im7HUpIWS0NhinOc=;
+        b=ihuctCPRpZ/fR2YYGwo07Sno/LV32YmAgqxWqCX2RFy08ri/MvbF023N9O+7Td+Tyy
+         t8+FWdSsQiHVuNREpUzsx5SGz8t2+rmzKs/2hvVT+9TOgyXh/wKFu0MC4wo9fc8GcFvc
+         Y1MLoiFNlc+UEFcTy8AfrheB2GsifcYR1GLeIvOUwp4AZ2ga0vcZsae6Pf+yyIXakrVw
+         QYhdswJrsMP7KxhPTC5id7TLiMTi0RHGiSyIdo7sKWuTO/FFuyzHEosK7YUws88idZuT
+         IMSyVdbbDApTMSQv/JyjPuye5Uz8ezI5Pv13/agZrf9QDFl42tHDTtYmc6ZRR3VoPQrZ
+         vOEA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@discover.pinterest.com header.s=pins header.b=HsGNuuhY;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=ePH9AEVl;
+       spf=pass (google.com: domain of bounce+2e8b70.56089b-gamingkong052=gmail.com@discover.pinterest.com designates 64.45.163.140 as permitted sender) smtp.mailfrom="bounce+2e8b70.56089b-gamingkong052=gmail.com@discover.pinterest.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=pinterest.com
+Return-Path: <bounce+2e8b70.56089b-gamingkong052=gmail.com@discover.pinterest.com>
+Received: from outbound-402da38c.pinterestmail.com (outbound-402da38c.pinterestmail.com. [64.45.163.140])
+        by mx.google.com with UTF8SMTPS id 5a478bee46e88-33ba50d9ae7si14816811eec.76.2026.09.11.21.49.59
+        for <gamingkong052@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 11 Sep 2026 21:50:00 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounce+2e8b70.56089b-gamingkong052=gmail.com@discover.pinterest.com designates 64.45.163.140 as permitted sender) client-ip=64.45.163.140;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@discover.pinterest.com header.s=pins header.b=HsGNuuhY;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=ePH9AEVl;
+       spf=pass (google.com: domain of bounce+2e8b70.56089b-gamingkong052=gmail.com@discover.pinterest.com designates 64.45.163.140 as permitted sender) smtp.mailfrom="bounce+2e8b70.56089b-gamingkong052=gmail.com@discover.pinterest.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=pinterest.com
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=discover.pinterest.com; q=dns/txt; s=pins; t=1789188599; x=1789195799;
+ h=Message-Id: Reply-To: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: Date: Sender: Sender: X-Feedback-Id;
+ bh=sfTUAjfKDYN3Rg3YMKHfKPbh1zcFu3/qnX/JeXdgeXM=;
+ b=HsGNuuhYrY86ku3LIKeaeDpK2QVAVb13aDK972HFYfkaczR994TjTRxMrKs+u2wdCb+AeTwcFk9I2m8v3cdtuRfd+VI0XOMSAIN5jFrA4fXjhCEwlSyNjmoGz4EGSDusQ1Zx5+fhoNYOku/iEQbmcKipjBZltUyR8UsRAD8RrcNIYvgDLOoR09kN5wldbKu/+pnPhCsL6YK8fev+TZ1Iv7R0uI57sxnhTBESsXwuQ+Vd3jjF6u51VZyHBdMOn+0xaR7MzX/KJ2WX1VKrRDjbtHKe2L1xtymO9C68srMHsSrsr6LN68uGM9zgZbrXObBQ1LeyQpNxwTScI6QjqEw14w==
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1789188599; x=1789195799;
+ h=Message-Id: Reply-To: To: To: From: From: Subject: Subject: Content-Type: Mime-Version: Date: Sender: Sender: X-Feedback-Id;
+ bh=sfTUAjfKDYN3Rg3YMKHfKPbh1zcFu3/qnX/JeXdgeXM=;
+ b=ePH9AEVlZWGcl30106iI5lldMfMy5c1Z51DTfkAv76mTduUA9j8dmAlxHDSE3FuYSVjAoS3J0aoHNFykiDs+8LWV5AWClg6bou2h79Uwkk/TACkc2xXH3tO5lBTt62KW8VMubURmrbLOAPZPvbIswkWOc25TE5hKTrdrTUeW7vk=
+X-Mailgun-Sid: WyI0YzVlZiIsImdhbWluZ2tvbmcwNTJAZ21haWwuY29tIiwiNTYwODliIl0=
+X-Feedback-Id: recommendations@discover.pinterest.com::604963f79dfa82bd0d934bda:mailgun
+Received: by f4c909de6cc952b1f81b217d2add130062336877b3eebae2e02cc797bd377a76 with HTTP
+ id 6aa4d9f750401ad9b0520b49; Sat, 12 Sep 2026 04:49:59 GMT
+X-Mailgun-Sending-Ip: 64.45.163.140
+Sender: recommendations@discover.pinterest.com
+Date: Sat, 12 Sep 2026 04:49:59 +0000
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="6fb190c33a1efd9ebaf77d095c8fb7c9fa0b7b597e0befd947987f6235c7"
+Subject: =?UTF-8?q?We=E2=80=99re_updating_our_Terms_of_Service_and_Privacy_Policy?=
+From: Pinterest <recommendations@discover.pinterest.com>
+To: GAMING KONG <gamingkong052@gmail.com>
+X-Mailgun-Track-Opens: true
+X-Mailgun-Track-Clicks: false
+X-Mailgun-Suppressions-Bypass: True
+Reply-To: recommendations@reply.pinterest.com
+X-Mailgun-Variables: {"bdg": "discover", "cmp": "LEGAL_TOS_AND_PRIVACY_POLICY_UPDATE_NOTICE",
+ "trk": "583d4287d5cd4779aa4e3cadf41a6bac", "uid": "1133992518581998946"}
+Message-Id: <20260912044959.82adf4be390340b8@discover.pinterest.com>
+
+--6fb190c33a1efd9ebaf77d095c8fb7c9fa0b7b597e0befd947987f6235c7
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ascii
+
+
+
+
+
+
+Pinterest
+
+651 Brannan Street, San Francisco, CA, 94107
+
+    Help Centre: https://www.pinterest.com/email/click/?user_id=3DMTEzMzk5M=
+jUxODU4MTk5ODk0Ng%3D%3D&od=3DdD01ODNkNDI4N2Q1Y2Q0Nzc5YWE0ZTNjYWRmNDFhNmJhYy=
+ZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ1lfVVBEQVRFX05PVElDRSZzPU5vbmUmbj1Ob=
+25l&target=3Dhttps%3A%2F%2Fwww.pinterest.com%2F_%2F_%2Fhelp%2F%3Fsource%3De=
+mail_footer%26utm_campaign%3Dtos_jun_2026%26e_t%3D583d4287d5cd4779aa4e3cadf=
+41a6bac%26e_t_s%3Dfooter%26utm_source%3D31%26utm_medium%3D2035
+
+    Privacy Policy: https://www.pinterest.com/email/click/?user_id=3DMTEzMz=
+k5MjUxODU4MTk5ODk0Ng%3D%3D&od=3DdD01ODNkNDI4N2Q1Y2Q0Nzc5YWE0ZTNjYWRmNDFhNmJ=
+hYyZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ1lfVVBEQVRFX05PVElDRSZzPU5vbmUmbj=
+1Ob25l&target=3Dhttps%3A%2F%2Fwww.pinterest.com%2F_%2F_%2Fpolicy%2Fprivacy-=
+policy%2F
+
+    Terms & conditions: https://www.pinterest.com/email/click/?user_id=3DMT=
+EzMzk5MjUxODU4MTk5ODk0Ng%3D%3D&od=3DdD01ODNkNDI4N2Q1Y2Q0Nzc5YWE0ZTNjYWRmNDF=
+hNmJhYyZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ1lfVVBEQVRFX05PVElDRSZzPU5vbm=
+Umbj1Ob25l&target=3Dhttps%3A%2F%2Fwww.pinterest.com%2F_%2F_%2Fpolicy%2Fterm=
+s-of-service%2F
+
+    Manage email settings: https://www.pinterest.com/email/click/?user_id=
+=3DMTEzMzk5MjUxODU4MTk5ODk0Ng%3D%3D&od=3DdD01ODNkNDI4N2Q1Y2Q0Nzc5YWE0ZTNjYW=
+RmNDFhNmJhYyZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ1lfVVBEQVRFX05PVElDRSZzP=
+U5vbmUmbj1Ob25l&target=3Dhttps%3A%2F%2Fwww.pinterest.com%2Femail%2Funsubscr=
+ibe%2F%3Fuser_id%3DMTEzMzk5MjUxODU4MTk5ODk0Ng%253D%253D%26od%3DmYtQyq%252By=
+IW8N68eDvb%252BXCfSWh3bYNbAY4hN8QWSX1qa07%252ByaHuIO9Ey%252FPmlQQvZkQsvom4A=
+HwlvmgsyKmKuhNcm4Qc%252FXsmT811mYSNa7ZRqBrIqyNNMH5surg1pKtkzNbuGJjNH%252BdQ=
+RPKK6o%252BuZEYubgnLG9nzl5%252FHv9lLpndoJSbs1PXCiitYCbBlHINEZ1zuahak%252Bqc=
+Z%252FkohdYDjQvxtlZnqmKqlbZ7%252FGARXhLs5tLGI2VcjfpGIxlBAyj5BKVqvTMmqAe1PG8=
+DiB77BxfWGu3PRujUwrnSuIb1TjIOnN3zA0wr93IXo81yL6PyHn8cu81L7xLPTEsZV1ig4afVea=
+u%252FdSTGmPBr5MZuNZVJFrRI431oMlmuPYHPDQNYybmcQjkbFyJaA%252FuScJ1xrSPSvyxS4=
+JsiB5cmWgToQUbnnJ1ZRceeae6vNxdCN9bLuJ2%26utm_campaign%3Dtos_jun_2026%26e_t%=
+3D583d4287d5cd4779aa4e3cadf41a6bac%26e_t_s%3Dfooter%26utm_source%3D31%26utm=
+_medium%3D2035
+
+    Not my account: https://www.pinterest.com/email/click/?user_id=3DMTEzMz=
+k5MjUxODU4MTk5ODk0Ng%3D%3D&od=3DdD01ODNkNDI4N2Q1Y2Q0Nzc5YWE0ZTNjYWRmNDFhNmJ=
+hYyZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ1lfVVBEQVRFX05PVElDRSZzPU5vbmUmbj=
+1Ob25l&target=3Dhttps%3A%2F%2Fwww.pinterest.com%2Femail%2Fremove%2F%3Fuser_=
+id%3DMTEzMzk5MjUxODU4MTk5ODk0Ng%253D%253D%26od%3DmYtQyq%252ByIW8N68eDvb%252=
+BXCfSWh3bYNbAY4hN8QWSX1qa07%252ByaHuIO9Ey%252FPmlQQvZkQsvom4AHwlvmgsyKmKuhN=
+cm4Qc%252FXsmT811mYSNa7ZRqBrIqyNNMH5surg1pKtkzNbuGJjNH%252BdQRPKK6o%252BuZE=
+YubgnLG9nzl5%252FHv9lLpndoJSbs1PXCiitYCbBlHINEZ1zuahak%252BqcZ%252FkohdYDjQ=
+vxtlZnqmKqlbZ7%252FGARXhLs5tLGI2VcjfpGIxlBAyj5BKVqvTMmqAe1PG8DiB77BxfWGu3PR=
+ujUwrnSuIb1TjIOnN3zA0wr93IXo81yL6PyHn8cu81L7xLPTEsZV1ig4afVeau%252FdSTGmPBr=
+5MZuNZVJFrRI431oMlmuPYHPDQNYybmcQjkbFyJaA%252FuScJ1xrSPSvyxS4JsiB5cmWgToQUb=
+nnJ1ZRceeae6vNxdCN9bLuJ2%26utm_campaign%3Dtos_jun_2026%26e_t%3D583d4287d5cd=
+4779aa4e3cadf41a6bac%26e_t_s%3Dfooter%26utm_source%3D31%26utm_medium%3D2035
+
+
+--6fb190c33a1efd9ebaf77d095c8fb7c9fa0b7b597e0befd947987f6235c7
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org=
+/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns=3D"http://www.w3.org/1999/xhtml" xmlns:o=3D"urn:schemas-microso=
+ft-com:office:office" xmlns:v=3D"urn:schemas-microsoft-com:vml"> <head><met=
+a content=3D"text/html; charset=3Dutf-8" http-equiv=3D"Content-Type"/><meta=
+ content=3D"width=3Ddevice-width, initial-scale=3D1.0" name=3D"viewport"/><=
+meta content=3D"IE=3Dedge" http-equiv=3D"X-UA-Compatible"/><meta name=3D"x-=
+apple-disable-message-reformatting"/><meta content=3D"light dark" name=3D"c=
+olor-scheme"/><meta content=3D"light dark" name=3D"supported-color-schemes"=
+/><style type=3D"text/css">
+:root{color-scheme:light dark;supported-color-schemes:light dark}.ExternalC=
+lass{width:100%}.ExternalClass,.ExternalClass p,.ExternalClass span,.Extern=
+alClass font,.ExternalClass td,.ExternalClass div{line-height:100%}#Message=
+ViewBody,#MessageWebViewDiv{width:100% !important}body{-webkit-text-size-ad=
+just:none;-ms-text-size-adjust:none}body{margin:0 auto !important;padding:0=
+}table td{border-collapse:collapse}a{text-decoration:none}body,table,td{fon=
+t-family:SF Pro Text,Roboto,Segoe UI,helvetica neue,helvetica,arial,sans-se=
+rif !important}.of{overflow:hidden !important;text-overflow:ellipsis !impor=
+tant}.wwn{word-wrap:normal}.ha{height:auto !important}.wa{width:auto !impor=
+tant}.yahoo_ib_cell{display:inline-block}/*!*/.yahoo_ib_cell{display:table-=
+cell !important}.yahoo_ib_block{display:inline-block;padding:0 8px;vertical=
+-align:top}/*!*/.yahoo_ib_block{display:block !important;padding:0}.i_cente=
+r{background-size:cover;background-position:50%;background-repeat:no-repeat=
+}.o_f_cov{object-fit:cover !important}.d_br16{border-radius:16px !important=
+}.d_brtl16{border-top-left-radius:16px !important}.d_brtr16{border-top-righ=
+t-radius:16px !important}.d_brbr16{border-bottom-right-radius:16px !importa=
+nt}.d_brbl16{border-bottom-left-radius:16px !important}.d_br24{border-radiu=
+s:24px !important}.d_wb1{border:1px solid #fff !important}.d_wb2{border:1px=
+ solid #e2e2e2 !important}.d_br32{border-radius:32px !important}.pf{font-fa=
+mily:SF Pro Text,Roboto,Segoe UI,helvetica neue,helvetica,arial,sans-serif =
+!important;text-decoration:none !important}.op_999{opacity:.999 !important}=
+=2Eop_001{opacity:.001 !important}.f_wb=
+{font-weight:bold !important}.ta_c{tex=
+t-align:center !important}.d_of_v{overflow:visible !important}.d_pl0{paddin=
+g-left:0 !important}.d_pr0{padding-right:0 !important}.d_pb0{padding-bottom=
+:0 !important}.d_pr8{padding-right:8px !important}.d_pb8{padding-bottom:8px=
+ !important}.d_pl8{padding-left:8px !important}.d_pt14_5{padding-top:14.5px=
+ !important}.d_pb14_5{padding-bottom:14.5px !important}.d_pt16{padding-top:=
+16px !important}.d_pr16{padding-right:16px !important}.d_pb16{padding-botto=
+m:16px !important}.d_pl16{padding-left:16px !important}.d_pl40{padding-left=
+:40px !important}.d_pr24{padding-right:24px !important}.d_pb24{padding-bott=
+om:24px !important}.d_pl24{padding-left:24px !important}.d_pr32{padding-rig=
+ht:32px !important}.d_pl32{padding-left:32px !important}.d_pr48{padding-rig=
+ht:48px !important}.d_pl48{padding-left:48px !important}.d_px28{padding-lef=
+t:28px !important;padding-right:28px !important}.d_py36{padding-top:36px !i=
+mportant;padding-bottom:36px !important}.d_mh44{max-height:44px !important}=
+=2Ed_fs12{font-size:12px !important}.d_=
+fs14{font-size:14px !important}.d_fs16=
+{font-size:16px !important}.d_fs19{font-size:19px !important}.d_fs20{font-s=
+ize:20px !important}.d_fs24{font-size:24px !important}.d_fs28{font-size:28p=
+x !important}.d_fs36{font-size:36px !important}.d_mt16{Margin-top:16px !imp=
+ortant}.d_mb16{Margin-bottom:16px !important}.d_mb24{Margin-bottom:24px !im=
+portant}.d_mt42{Margin-top:42px !important}.d_mt189pc{Margin-top:189%}.d_mt=
+279pc{Margin-top:279%}.d_mt317pc{Margin-top:317%}.d_w100pc{width:100% !impo=
+rtant}.d_w16{width:16px !important}.d_w32{width:32px !important}.d_w48{widt=
+h:48px !important}.d_w64{width:64px !important}.d_w78{width:78px !important=
+}.d_w100{width:100px !important}.d_w117{width:117px !important}.d_w120{widt=
+h:120px !important}.d_w152{width:152px !important}.d_w157{width:157px !impo=
+rtant}.d_w162{width:162px !important}.d_w173{width:173px !important}.d_w180=
+{width:180px !important}.d_w210{width:210px !important}.d_w236{width:236px =
+!important}.d_w241{width:241px !important}.d_w305{width:305px !important}.d=
+_w306{width:306px !important}.d_w325{width:325px !important}.d_w362{width:3=
+62px !important}.d_w370{width:370px !important}.d_w430{width:430px !importa=
+nt}.d_w488{width:488px !important}.d_w520{width:520px !important}.d_w636{wi=
+dth:636px !important}.d_w756{width:756px !important}.d_w772{width:772px !im=
+portant}.d_w951{width:951px !important}.d_max_w236{max-width:236px !importa=
+nt}.d_max_w370{max-width:370px !important}.d_max_w488{max-width:488px !impo=
+rtant}.d_max_w520{max-width:520px !important}.d_max_w636{max-width:636px !i=
+mportant}.d_h0{height:0 !important}.d_max_h0{max-height:0 !important}.d_h24=
+{height:24px !important}.d_h32{height:32px !important}.d_h48{height:48px !i=
+mportant}.d_h64{height:64px !important}.d_h78{height:78px !important}.d_h11=
+8{height:118px !important}.d_h120{height:120px !important}.d_h152{height:15=
+2px !important}.d_h157{height:157px !important}.d_h162{height:162px !import=
+ant}.d_h173{height:173px !important}.d_h217{height:217px !important}.d_h241=
+{height:241px !important}.d_h265{height:265px !important}.d_h276{height:276=
+px !important}.d_h290{height:290px !important}.d_h325{height:325px !importa=
+nt}.d_h354{height:354px !important}.d_h560{height:560px !important}.d_h100p=
+c{height:100% !important}.d_lh12{line-height:12px !important}.d_lh14{line-h=
+eight:14px !important}.d_lh16{line-height:16px !important}.d_lh19{line-heig=
+ht:19px !important}.d_lh22{line-height:22px !important}.d_lh23{line-height:=
+23px !important}.d_lh24{line-height:24px !important}.d_lh26{line-height:26p=
+x !important}.d_lh31{line-height:31px !important}.d_lh33{line-height:33px !=
+important}.d_none{display:none !important}.d_block{display:block !important=
+}.d_inline{display:inline !important}.d_inline_block{display:inline-block !=
+important}.d_rel{position:relative !important}.d_3_columns{columns:3 auto !=
+important}.d_3_columns_break{font-size:24px !important}.d_3_column_gap{colu=
+mn-gap:24px !important}@media(max-width:520px){.m_h4{height:4px !important}=
+=2Em_h16{height:16px !important}.m_h24{=
+height:24px !important}.m_h135{height:=
+135px !important}.m_h145{height:145px !important}.m_h170{height:170px !impo=
+rtant}.m_mh34{max-height:34px !important}.m_fs8{font-size:8px !important}.m=
+_fs11{font-size:11px !important}.m_fs12{font-size:12px !important}.m_fs14{f=
+ont-size:14px !important}.m_fs16{font-size:16px !important}.m_fs20{font-siz=
+e:20px !important}.m_lh11{line-height:11px !important}.m_lh14{line-height:1=
+4px !important}.m_lh16{line-height:16px !important}.m_lh17{line-height:17px=
+ !important}.m_lh19{line-height:19px !important}.m_lh20{line-height:20px !i=
+mportant}.m_lh22{line-height:22px !important}.m_lh24{line-height:24px !impo=
+rtant}.m_pb0{padding-bottom:0 !important}.m_pt4{padding-top:4px !important}=
+=2Em_pr4{padding-right:4px !important}.=
+m_pb4{padding-bottom:4px !important}.m=
+_pl4{padding-left:4px !important}.m_pt8{padding-top:8px !important}.m_pr8{p=
+adding-right:8px !important}.m_pb8{padding-bottom:8px !important}.m_pl8{pad=
+ding-left:8px !important}.m_pt10{padding-top:10px !important}.m_pb10{paddin=
+g-bottom:10px !important}.m_pt12{padding-top:12px !important}.m_pr12{paddin=
+g-right:12px !important}.m_pb12{padding-bottom:12px !important}.m_pl12{padd=
+ing-left:12px !important}.m_pr16{padding-right:16px !important}.m_pb16{padd=
+ing-bottom:16px !important}.m_pl16{padding-left:16px !important}.m_mt0{Marg=
+in-top:0 !important}.m_mt8{Margin-top:8px !important}.m_mb8{Margin-bottom:8=
+px !important}.m_ml8{Margin-left:8px !important}.m_mb16{Margin-bottom:16px =
+!important}.m_mt4{Margin-top:4px !important}.m_mr4{Margin-right:4px !import=
+ant}.m_ml4{Margin-left:4px !important}.m_w12{width:12px !important}.m_w20{w=
+idth:20px !important}.m_w24{width:24px !important}.m_w84{width:84px !import=
+ant}.m_w120{width:120px !important}.m_w136{width:136px !important}.m_w236{w=
+idth:236px !important}.m_w100pc{width:100% !important}.m_none{display:none =
+!important}.m_block{display:block !important}.m_inline{display:inline !impo=
+rtant}.m_2_columns{columns:2 auto !important}.m_2_columns_gap{column-gap:8p=
+x !important}.m_g_2_columns_gap{column-gap:4px !important}.m_2_columns_brea=
+k{font-size:16px !important}.m_pl0{padding-left:0 !important}.m_pt16{paddin=
+g-top:16px !important}.m_px16{padding-left:16px !important;padding-right:16=
+px !important}.m_py24{padding-top:24px !important;padding-bottom:24px !impo=
+rtant}.m_br0{border-radius:0 !important}.m_brw0{border-left-width:0 !import=
+ant}.m_blw0{border-right-width:0 !important}.m_bbw0{border-bottom-width:0 !=
+important}}@media(max-width:359px){.m_s_w49{width:49px !important}.m_s_w73{=
+width:73px !important}.m_s_w96{width:96px !important}.m_s_w99{width:99px !i=
+mportant}.m_s_w100{width:100px !important}.m_s_w101{width:101px !important}=
+=2Em_s_w117{width:117px !important}.m_s=
+_w147{width:147px !important}.m_s_w148=
+{width:148px !important}.m_s_w149{width:149px !important}.m_s_w174{width:17=
+4px !important}.m_s_w203{width:203px !important}.m_s_w299{width:299px !impo=
+rtant}.m_s_w300{width:300px !important}.m_s_w302{width:302px !important}.m_=
+s_w305{width:305px !important}.m_s_w312{width:312px !important}.m_s_w314{wi=
+dth:314px !important}.m_s_w318{width:318px !important}.m_s_w320{width:320px=
+ !important}.m_s_w322{width:322px !important}.m_s_h49{height:49px !importan=
+t}.m_s_h74{height:74px !important}.m_s_h98{height:98px !important}.m_s_h99{=
+height:99px !important}.m_s_h129{height:129px !important}.m_s_h134{height:1=
+34px !important}.m_s_h144{height:144px !important}.m_s_h148{height:148px !i=
+mportant}.m_s_h203{height:203px !important}.m_s_h222{height:222px !importan=
+t}.m_s_h262{height:262px !important}.m_s_fs11{font-size:11px !important}.m_=
+s_mt98pc{Margin-top:98%}.m_s_mt153pc{Margin-top:153%}}@media(min-width:360p=
+x) and (max-width:374px){.m_m_w55{width:55px !important}.m_m_w83{width:83px=
+ !important}.m_m_w109{width:109px !important}.m_m_w111{width:111px !importa=
+nt}.m_m_w114{width:114px !important}.m_m_w133{width:133px !important}.m_m_w=
+167{width:167px !important}.m_m_w168{width:168px !important}.m_m_w198{width=
+:198px !important}.m_m_w229{width:229px !important}.m_m_w327{width:327px !i=
+mportant}.m_m_w342{width:342px !important}.m_m_w344{width:344px !important}=
+=2Em_m_w352{width:352px !important}.m_m=
+_w355{width:355px !important}.m_m_w358=
+{width:358px !important}.m_m_w360{width:360px !important}.m_m_h55{height:55=
+px !important}.m_m_h84{height:84px !important}.m_m_h111{height:111px !impor=
+tant}.m_m_h113{height:113px !important}.m_m_h147{height:147px !important}.m=
+_m_h153{height:153px !important}.m_m_h163{height:163px !important}.m_m_h168=
+{height:168px !important}.m_m_h229{height:229px !important}.m_m_h252{height=
+:252px !important}.m_m_h298{height:298px !important}.m_m_fs11{font-size:11p=
+x !important}.m_m_mt120pc{Margin-top:120%}.m_m_mt182pc{Margin-top:182%}}@me=
+dia(min-width:375px) and (max-width:520px){.m_l_w58{width:58px !important}.=
+m_l_w87{width:87px !important}.m_l_w114{width:114px !important}.m_l_w117{wi=
+dth:117px !important}.m_l_w118{width:118px !important}.m_l_w119{width:119px=
+ !important}.m_l_w138{width:138px !important}.m_l_w176{width:176px !importa=
+nt}.m_l_w207{width:207px !important}.m_l_w239{width:239px !important}.m_l_w=
+270{width:270px !important}.m_l_w342{width:342px !important}.m_l_w355{width=
+:355px !important}.m_l_w359{width:359px !important}.m_l_w360{width:360px !i=
+mportant}.m_l_w368{width:368px !important}.m_l_w376{width:376px !important}=
+=2Em_l_w380{width:380px !important}.m_l=
+_h58{height:58px !important}.m_l_h88{h=
+eight:88px !important}.m_l_h117{height:117px !important}.m_l_h119{height:11=
+9px !important}.m_l_h154{height:154px !important}.m_l_h160{height:160px !im=
+portant}.m_l_h171{height:171px !important}.m_l_h176{height:176px !important=
+}.m_l_h239{height:239px !important}.m_l_h264{height:264px !important}.m_l_h=
+312{height:312px !important}.m_l_fs12{font-size:12px !important}.m_l_mt129p=
+c{Margin-top:129%}.m_l_mt192pc{Margin-top:192%}}@media(min-width:521px) and=
+ (max-width:772px){.d_s_none{display:none !important}.d_s_w78{width:78px !i=
+mportant}.d_s_w94{width:94px !important}.d_s_w96{width:96px !important}.d_s=
+_w117{width:117px !important}.d_s_w152{width:152px !important}.d_s_w157{wid=
+th:157px !important}.d_s_w210{width:210px !important}.d_s_w236{width:236px =
+!important}.d_s_w244{width:244px !important}.d_s_w305{width:305px !importan=
+t}.d_s_w488{width:488px !important}.d_s_w520{width:520px !important}.d_s_w7=
+56{width:756px !important}.d_s_h78{height:78px !important}.d_s_h152{height:=
+152px !important}.d_s_h157{height:157px !important}.d_s_h228{height:228px !=
+important}.d_s_pl16{padding-left:16px !important}.d_s_pr16{padding-right:16=
+px !important}.d_s_mt189pc{Margin-top:189%}.d_s_none{display:none !importan=
+t}.d_s_inline{display:inline !important}.d_s_fs14{font-size:14px !important=
+}.d_s_fs16{font-size:16px !important}.d_s_lh20{line-height:20px !important}=
+=2Ed_s_pr4{padding-right:4px !important=
+}.d_s_pl4{padding-left:4px !important}=
+=2Ed_s_pt8{padding-top:8px !important}.=
+d_s_pr8{padding-right:8px !important}.=
+d_s_pb8{padding-bottom:8px !important}.d_s_pl8{padding-left:8px !important}=
+=2Ed_s_mt8{Margin-Top:8px !important}.d=
+_s_mb8{Margin-Bottom:8px !important}}@=
+media(min-width:773px){.d_l_w520{width:520px !important}.d_l_w772{width:772=
+px !important}.d_l_none{display:none !important}.d_l_pl16{padding-left:16px=
+ !important}.d_l_pr16{padding-right:16px !important}}.c_g0{color:#fff !impo=
+rtant}.c_g118{color:#767676 !important}.c_g250{color:#767676 !important}.c_=
+g300{color:#111 !important}.c_g400{color:#000 !important}.c_h002966{color:#=
+002966 !important}.c_h9B0000{color:#9b0000 !important}.c_hA30C4A{color:#a30=
+c4a !important}.c_h004BA9{color:#004ba9 !important}.c_h0074e8{color:#0074e8=
+ !important}.c_h101828{color:#101828 !important}.c_h91918C{color:#91918c !i=
+mportant}.bgc_g100{background-color:#efefef !important}.bgc_g133{background=
+-color:#e9e9e9 !important}@media(prefers-color-scheme:dark){.dm_d_none{disp=
+lay:none !important}.dm_d_block{display:block !important}.dm_d_inline_block=
+{display:inline-block !important}.dm_dbg{background-color:#030303 !importan=
+t}.dm_df{color:#efefef !important}.dm_dbg_g100{background-color:#404040 !im=
+portant}.dm_b_g100{border:1px solid #404040 !important}.dm_br_000{border-ri=
+ght:1px solid #030303 !important}.dm_b_000{border:1px solid #030303 !import=
+ant}.dm_c_g0{color:#030303 !important}.dm_c_g100{color:#404040 !important}.=
+dm_c_g205{color:#cdcdcd !important}.dm_c_g250{color:#8e8e8e !important}.dm_=
+c_g300{color:#efefef !important}.dm_c_g400{color:#fff !important}.dm_c_h75B=
+FFF{color:#75bfff !important}.dm_c_h101828{color:#efefef !important}.dm_c_h=
+91918C{color:#8e8e8e !important}.dm_bgc_g50{background-color:#212121 !impor=
+tant}.dm_bgc_g100{background-color:#404040 !important}.dm_bgc_g118{backgrou=
+nd-color:#767676 !important}.dm_bgc_g400{background-color:#fff !important}.=
+dm_bgc_h0074e8{background-color:#75bfff !important}.dm_bgc_471d51{backgroun=
+d-color:#471d51 !important}}
+</style><!--[if gte mso 9]>
+<xml>
+<o:OfficeDocumentSettings>
+<o:AllowPNG/>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+<![endif]--></head> <body><div style=3D"color:transparent;visibility:hidden=
+;opacity:0;font-size:0px;border:0;max-height:1px;width:1px;margin:0px;paddi=
+ng:0px;border-width:0px!important;display:none!important;line-height:0px!im=
+portant;"><img border=3D"0" height=3D"1" src=3D"https://www.pinterest.com/e=
+mail/open/?pd=3DdGlkPTU4M2Q0Mjg3ZDVjZDQ3NzlhYTRlM2NhZGY0MWE2YmFjJmNpZD1MRUd=
+BTF9UT1NfQU5EX1BSSVZBQ1lfUE9MSUNZX1VQREFURV9OT1RJQ0UmdG9fYWRkcj1nYW1pbmdrb2=
+5nMDUyJTQwZ21haWwuY29tJnBvcz10b3BfcGl4ZWwmdHlwZT1odG1sJnNpZD1Ob25lJnNuaWQ9T=
+m9uZSZ1aWQ9MTEzMzk5MjUxODU4MTk5ODk0Ng%3D%3D" width=3D"1"/></div> <table ali=
+gn=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" class=3D"dm_=
+dbg" style=3D"border-collapse:collapse" width=3D"100%"> <tr> <td> <div clas=
+s=3D"d_block m_none" style=3D"height:16px;font-size:16px;line-height:16px;d=
+isplay:none">=C2=A0</div> <!--[if !mso]><!--> <div class=3D"d_none m_block"=
+ style=3D"height:8px;font-size:8px;line-height:8px">=C2=A0</div> <!--<![end=
+if]--> </td> </tr> </table> <table align=3D"center" border=3D"0" cellpaddin=
+g=3D"0" cellspacing=3D"0" class=3D"dm_dbg" style=3D"border-collapse:collaps=
+e" width=3D"100%"> <tr> <td align=3D"center"> <table align=3D"center" borde=
+r=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"
+font-size:0;
+border-collapse:collapse;
+font-family:'SF Pro Text,Roboto,Segoe UI,helvetica neue,helvetica,arial,san=
+s-serif'"> <tr> <td align=3D"right" width=3D"24"> <img border=3D"0" height=
+=3D"24" src=3D"https://i.pinimg.com/email/shared/email/logo_circle_full_100=
+=2Epng" style=3D"
+display:block;
+-ms-interpolation-mode:bicubic;
+text-decoration:none;
+border:0;
+outline:none;
+height:24px;
+width:24px;" width=3D"24"/> </td> </tr> </table> </td> </tr> </table> <tabl=
+e align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" class=
+=3D"dm_dbg" style=3D"border-collapse:collapse" width=3D"100%"> <tr> <td> <d=
+iv class=3D"d_block m_none" style=3D"height:32px;font-size:32px;line-height=
+:32px;display:none">=C2=A0</div> <!--[if !mso]><!--> <div class=3D"d_none m=
+_block" style=3D"height:16px;font-size:16px;line-height:16px">=C2=A0</div> =
+<!--<![endif]--> </td> </tr> </table> <table align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" class=3D"dm_dbg" style=3D"border-collap=
+se:collapse" width=3D"100%"> <tr> <!--[if mso]>
+<table align=3D"center" border=3D"0" width=3D"100%" class=3D"dm_dbg" cellpa=
+dding=3D"0" cellspacing=3D"0" style=3D"table-layout:fixed">
+<tr>
+<td align=3D"center" >
+<![endif]--> <td align=3D"center" class=3D"dm_dbg"> <!--[if mso]>
+<table width=3D"488px" align=3D"center" border=3D"0" cellpadding=3D"0" cell=
+spacing=3D"0" style=3D"table-layout:fixed">
+<tr>
+<td align=3D"left" >
+<![endif]--> <div style=3D"width:488px; max-width:488px; text-align:left;">=
+ <span class=3D"d_fs16 d_lh19 c_g300 dm_c_g300 dm_dbg m_pl8 m_pr8 d_pl0 d_p=
+r0" style=3D"
+display:inline-block;
+font-size: 16px;
+line-height: 19px;
+padding: 0 8px;
+font-family:SF Pro Text,Roboto,Segoe UI,helvetica neue,helvetica,arial,sans=
+-serif;
+color: #111111;
+text-align: left;
+text-decoration:none;
+font-weight: normal;"> At Pinterest, we regularly review our terms and poli=
+cies to reflect how Pinterest serves its users. We want to share some updat=
+es that we're making to our <a href=3D"https://www.pinterest.com/email/clic=
+k/?user_id=3DMTEzMzk5MjUxODU4MTk5ODk0Ng%3D%3D&amp;od=3DdD01ODNkNDI4N2Q1Y2Q0=
+Nzc5YWE0ZTNjYWRmNDFhNmJhYyZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ1lfVVBEQVR=
+FX05PVElDRSZzPU5vbmUmbj1Ob25l&amp;target=3Dhttps%3A%2F%2Fpolicy.pinterest.c=
+om%2Fterms-of-service-preview">Terms of Service</a>, <a href=3D"https://www=
+=2Epinterest.com/email/click/?user_id=3D=
+MTEzMzk5MjUxODU4MTk5ODk0Ng%3D%3D&amp;=
+od=3DdD01ODNkNDI4N2Q1Y2Q0Nzc5YWE0ZTNjYWRmNDFhNmJhYyZjPUxFR0FMX1RPU19BTkRfUF=
+JJVkFDWV9QT0xJQ1lfVVBEQVRFX05PVElDRSZzPU5vbmUmbj1Ob25l&amp;target=3Dhttps%3=
+A%2F%2Fpolicy.pinterest.com%2Fprivacy-policy-preview">Privacy Policy</a> an=
+d <a href=3D"https://www.pinterest.com/email/click/?user_id=3DMTEzMzk5MjUxO=
+DU4MTk5ODk0Ng%3D%3D&amp;od=3DdD01ODNkNDI4N2Q1Y2Q0Nzc5YWE0ZTNjYWRmNDFhNmJhYy=
+ZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ1lfVVBEQVRFX05PVElDRSZzPU5vbmUmbj1Ob=
+25l&amp;target=3Dhttps%3A%2F%2Fwww.pinterest.com%2F_%2F_%2Fhelp%2Farticle%2=
+Fchanges-to-our-policies">other policies</a>, effective 12 November 2026. <=
+br/> <br/> We've made changes to our Terms of Service and policies incorpor=
+ated therein to make them easier to understand and to highlight the process=
+ to follow if you have a dispute with Pinterest. We've updated our Communit=
+y Guidelines, Advertising Guidelines and Merchant Guidelines to clarify our=
+ policies regarding scams and deceptive goods and practices. We've also upd=
+ated our Privacy Policy to clarify how data collected through our service m=
+ay be used to improve and personalise your experience on Pinterest and the =
+ads you may see off the platform. <br/> <br/> To control how we use your da=
+ta, please visit your Privacy and Data Settings. By continuing to use Pinte=
+rest and its other services after the effective date, you confirm that you =
+have agreed to our updated Terms of Service and have reviewed our Privacy P=
+olicy. <br/> <br/> Thanks,<br/>The Pinterest team </span> </div> <!--[if ms=
+o]>
+</td>
+</tr>
+</table>
+<![endif]--> </td> <!--[if mso]>
+</td>
+</tr>
+</table>
+<![endif]--> </tr> </table> <table align=3D"center" border=3D"0" cellpaddin=
+g=3D"0" cellspacing=3D"0" class=3D"dm_dbg" style=3D"border-collapse:collaps=
+e" width=3D"100%"> <tr> <td> <div class=3D"d_block m_none" style=3D"height:=
+32px;font-size:32px;line-height:32px;display:none">=C2=A0</div> <!--[if !ms=
+o]><!--> <div class=3D"d_none m_block" style=3D"height:16px;font-size:16px;=
+line-height:16px">=C2=A0</div> <!--<![endif]--> </td> </tr> </table> <table=
+ align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" class=3D=
+"dm_dbg" style=3D"border-collapse:collapse" width=3D"100%"> <tr> <td> <div =
+style=3D"Margin:0 auto"> <div style=3D"text-align:center;font-size:12px;lin=
+e-height:14px;font-weight:regular;
+font-family: SF Pro Text,Roboto,Segoe UI,helvetica neue,helvetica,arial,san=
+s-serif;"> <span class=3D"m_block d_inline_block" style=3D"display:block;ve=
+rtical-align:center"> <a class=3D"dm_df" href=3D"#" style=3D"color: #333333=
+;text-decoration: none;pointer-events:none;"> <!--
+-->This email was sent to gamingkong052@gmail.com <!--
+--></a> </span> </div> <div style=3D"text-align:center;font-size:12px;line-=
+height:14px;font-weight:bold;
+font-family: SF Pro Text,Roboto,Segoe UI,helvetica neue,helvetica,arial,san=
+s-serif;"> <span class=3D"m_block d_inline_block" style=3D"display:block;ve=
+rtical-align:center"> <a class=3D"dm_df" href=3D"https://www.pinterest.com/=
+email/click/?user_id=3DMTEzMzk5MjUxODU4MTk5ODk0Ng%3D%3D&amp;od=3DdD01ODNkND=
+I4N2Q1Y2Q0Nzc5YWE0ZTNjYWRmNDFhNmJhYyZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ=
+1lfVVBEQVRFX05PVElDRSZzPU5vbmUmbj1Ob25l&amp;target=3Dhttps%3A%2F%2Fwww.pint=
+erest.com%2Femail%2Fremove%2F%3Fuser_id%3DMTEzMzk5MjUxODU4MTk5ODk0Ng%253D%2=
+53D%26od%3DmYtQyq%252ByIW8N68eDvb%252BXCfSWh3bYNbAY4hN8QWSX1qa07%252ByaHuIO=
+9Ey%252FPmlQQvZkQsvom4AHwlvmgsyKmKuhNcm4Qc%252FXsmT811mYSNa7ZRqBrIqyNNMH5su=
+rg1pKtkzNbuGJjNH%252BdQRPKK6o%252BuZEYubgnLG9nzl5%252FHv9lLpndoJSbs1PXCiitY=
+CbBlHINEZ1zuahak%252BqcZ%252FkohdYDjQvxtlZnqmKqlbZ7%252FGARXhLs5tLGI2VcjfpG=
+IxlBAyj5BKVqvTMmqAe1PG8DiB77BxfWGu3PRujUwrnSuIb1TjIOnN3zA0wr93IXo81yL6PyHn8=
+cu81L7xLPTEsZV1ig4afVeau%252FdSTGmPBr5MZuNZVJFrRI431oMlmuPYHPDQNYybmcQjkbFy=
+JaA%252FuScJ1xrSPSvyxS4JsiB5cmWgToQUbnnJ1ZRceeae6vNxdCN9bLuJ2%26utm_campaig=
+n%3Dtos_jun_2026%26e_t%3D583d4287d5cd4779aa4e3cadf41a6bac%26e_t_s%3Dfooter%=
+26utm_source%3D31%26utm_medium%3D2035" style=3D"color: #333333;text-decorat=
+ion: none" title=3D"Not my account">Not my account</a> </span> </div> <div =
+class=3D"d_block m_none" style=3D"height:16px;font-size:16px;line-height:16=
+px;display:none">=C2=A0 </div> <!--[if !mso]><!--> <div class=3D"d_none m_b=
+lock" style=3D"height:32px;font-size:32px;line-height:32px">=C2=A0</div> <!=
+--<![endif]--> <div style=3D"text-align:center;font-size:12px;line-height:1=
+4px;font-weight:bold;
+font-family: SF Pro Text,Roboto,Segoe UI,helvetica neue,helvetica,arial,san=
+s-serif;"> <span class=3D"m_block d_inline_block" style=3D"display:block;ve=
+rtical-align:center"> <a class=3D"dm_df" href=3D"https://www.pinterest.com/=
+email/click/?user_id=3DMTEzMzk5MjUxODU4MTk5ODk0Ng%3D%3D&amp;od=3DdD01ODNkND=
+I4N2Q1Y2Q0Nzc5YWE0ZTNjYWRmNDFhNmJhYyZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ=
+1lfVVBEQVRFX05PVElDRSZzPU5vbmUmbj1Ob25l&amp;target=3Dhttps%3A%2F%2Fwww.pint=
+erest.com%2F_%2F_%2Fhelp%2F%3Fsource%3Demail_footer%26utm_campaign%3Dtos_ju=
+n_2026%26e_t%3D583d4287d5cd4779aa4e3cadf41a6bac%26e_t_s%3Dfooter%26utm_sour=
+ce%3D31%26utm_medium%3D2035" style=3D"color: #333333;text-decoration: none"=
+ title=3D"Find answers in our Help Centre">Help Centre</a> <!--
+--><span class=3D"dm_df" style=3D"color:#333333;white-space:pre">=C2=A0=C2=
+=A0=C2=B7=C2=A0=C2=A0</span> <!--
+--><a class=3D"dm_df" href=3D"https://www.pinterest.com/email/click/?user_i=
+d=3DMTEzMzk5MjUxODU4MTk5ODk0Ng%3D%3D&amp;od=3DdD01ODNkNDI4N2Q1Y2Q0Nzc5YWE0Z=
+TNjYWRmNDFhNmJhYyZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ1lfVVBEQVRFX05PVElD=
+RSZzPU5vbmUmbj1Ob25l&amp;target=3Dhttps%3A%2F%2Fwww.pinterest.com%2F_%2F_%2=
+Fpolicy%2Fprivacy-policy%2F" style=3D"color: #333333;text-decoration: none"=
+ title=3D"">Privacy Policy</a> <!--
+--><span class=3D"dm_df" style=3D"color:#333333;white-space:pre">=C2=A0=C2=
+=A0=C2=B7=C2=A0=C2=A0</span> <!--
+--><a class=3D"dm_df" href=3D"https://www.pinterest.com/email/click/?user_i=
+d=3DMTEzMzk5MjUxODU4MTk5ODk0Ng%3D%3D&amp;od=3DdD01ODNkNDI4N2Q1Y2Q0Nzc5YWE0Z=
+TNjYWRmNDFhNmJhYyZjPUxFR0FMX1RPU19BTkRfUFJJVkFDWV9QT0xJQ1lfVVBEQVRFX05PVElD=
+RSZzPU5vbmUmbj1Ob25l&amp;target=3Dhttps%3A%2F%2Fwww.pinterest.com%2F_%2F_%2=
+Fpolicy%2Fterms-of-service%2F" style=3D"color: #333333;text-decoration: non=
+e" title=3D"">Terms &amp; conditions</a> </span> </div> <div class=3D"d_blo=
+ck m_none" style=3D"height:16px;font-size:16px;line-height:16px;display:non=
+e">=C2=A0 </div> <!--[if !mso]><!--> <div class=3D"d_none m_block" style=3D=
+"height:32px;font-size:32px;line-height:32px">=C2=A0</div> <!--<![endif]-->=
+ <div style=3D"text-align:center;font-size:12px;line-height:14px;font-weigh=
+t:regular;
+font-family: SF Pro Text,Roboto,Segoe UI,helvetica neue,helvetica,arial,san=
+s-serif;"> <span class=3D"m_block d_inline_block" style=3D"display:block;ve=
+rtical-align:center"> Pinterest. Inc, 651 Brannan Street </span> </div> <di=
+v style=3D"text-align:center;font-size:12px;line-height:14px;font-weight:re=
+gular;
+font-family: SF Pro Text,Roboto,Segoe UI,helvetica neue,helvetica,arial,san=
+s-serif;"> <span class=3D"m_block d_inline_block" style=3D"display:block;ve=
+rtical-align:center"> San Francisco, CA, 94107 </span> </div> </div> </td> =
+</tr> </table> <table align=3D"center" border=3D"0" cellpadding=3D"0" cells=
+pacing=3D"0" class=3D"dm_dbg" style=3D"border-collapse:collapse" width=3D"1=
+00%"> <tr> <td> <div class=3D"d_block m_none" style=3D"height:32px;font-siz=
+e:32px;line-height:32px;display:none">=C2=A0</div> <!--[if !mso]><!--> <div=
+ class=3D"d_none m_block" style=3D"height:16px;font-size:16px;line-height:1=
+6px">=C2=A0</div> <!--<![endif]--> </td> </tr> </table> <img height=3D"0" s=
+rc=3D"https://www.pinterest.com/email/tracking.gif?e_t=3D583d4287d5cd4779aa=
+4e3cadf41a6bac" width=3D"0"/> <img alt=3D"" border=3D"0" height=3D"1" src=
+=3D"https://www.pinterest.com/email/open/?pd=3DdGlkPTU4M2Q0Mjg3ZDVjZDQ3Nzlh=
+YTRlM2NhZGY0MWE2YmFjJmNpZD1MRUdBTF9UT1NfQU5EX1BSSVZBQ1lfUE9MSUNZX1VQREFURV9=
+OT1RJQ0UmdG9fYWRkcj1nYW1pbmdrb25nMDUyJTQwZ21haWwuY29tJnBvcz1ib3R0b21fcGl4ZW=
+wmdHlwZT1odG1sJnNpZD1Ob25lJnNuaWQ9Tm9uZSZ1aWQ9MTEzMzk5MjUxODU4MTk5ODk0Ng%3D=
+%3D" width=3D"1"/><img width=3D"1" height=3D"1" alt=3D"" src=3D"https://pos=
+t.pinterestmail.com/o/eJw0zsFqAjEQgOGnMUeZJDObmUMOi0oRRKW1BU8hm8RtsOvKuvX5S=
+ws9__Dzdbn3uT7S-CyTSsPd7zYv7S6cDm-h3a_D8XX70a7O4XjYbVfn8H5ct6dN2B9O29VGZU8N=
+sHSqeO1YNDOJqE_PcslgHBsiJmS8NJJRAzkHDBKzqt6AaUC0AUQhWbKJ-YJdsQIWoeMFwj9qea-=
+3uUzlMS_TOKjJ93Got_463nogs0Doh1i__to8XT2xzWjYZUoZnZMYsdj0e9ex6WJS3zV7ra0VMa=
+SZWIuwYKOe3vwEAAD__0UsTbM"></body> </html>=20
+--6fb190c33a1efd9ebaf77d095c8fb7c9fa0b7b597e0befd947987f6235c7--

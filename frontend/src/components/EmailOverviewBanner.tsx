@@ -103,13 +103,47 @@ export const EmailOverviewBanner: FC<EmailOverviewBannerProps> = ({ data, onRese
                   {data.parsing_status === 'success' ? 'RFC 5322 Parsed' : 'Partial Parse'}
                 </span>
 
-                {/* Evidence Fusion Category Badge */}
+                {/* Evidence Fusion Category & Numerical Score Badge */}
                 {catBadge && (
                   <span
                     className={`inline-flex items-center text-xs px-3 py-0.5 rounded-full font-semibold border ${catBadge.badgeClass}`}
                   >
                     {catBadge.icon}
                     {catBadge.label}
+                    {fusion?.overall_risk_score !== undefined && (
+                      <span className="ml-1.5 font-mono font-bold bg-white/70 px-1.5 py-0.2 rounded border border-current/20">
+                        {fusion.overall_risk_score}/100
+                      </span>
+                    )}
+                  </span>
+                )}
+
+                {/* Evidence Completeness Badge */}
+                {fusion?.evidence_completeness && (
+                  <span
+                    className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-medium border ${
+                      fusion.evidence_completeness === 'FULL_COVERAGE'
+                        ? 'bg-blue-50 text-blue-700 border-blue-200'
+                        : fusion.evidence_completeness === 'PARTIAL_COVERAGE'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-slate-100 text-slate-700 border-slate-200'
+                    }`}
+                    title={fusion.evidence_completeness_detail || 'Evidence coverage assessment'}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                        fusion.evidence_completeness === 'FULL_COVERAGE'
+                          ? 'bg-blue-500'
+                          : fusion.evidence_completeness === 'PARTIAL_COVERAGE'
+                          ? 'bg-amber-500'
+                          : 'bg-slate-400'
+                      }`}
+                    />
+                    {fusion.evidence_completeness === 'FULL_COVERAGE'
+                      ? 'Full Coverage'
+                      : fusion.evidence_completeness === 'PARTIAL_COVERAGE'
+                      ? 'Partial Coverage'
+                      : 'Minimal Evidence'}
                   </span>
                 )}
               </div>

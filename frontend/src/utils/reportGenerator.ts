@@ -313,20 +313,78 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
       <div class="section-title">1. Executive Summary &amp; Evidence Fusion</div>
       
       <div class="banner" style="background: ${categoryBg}; border-color: ${categoryColor};">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <div>
             <span class="badge" style="background: ${categoryBg}; color: ${categoryColor}; border-color: ${categoryColor}; font-size: 12px;">
               ${escapeHtml(categoryTitle)}
             </span>
+            ${fusion?.overall_risk_score !== undefined ? `
+            <span class="badge" style="background: rgba(15, 23, 42, 0.7); color: #ffffff; border-color: rgba(255,255,255,0.2); font-size: 13px; margin-left: 8px;">
+              Score: <strong>${fusion.overall_risk_score}</strong> / 100
+            </span>` : ''}
             <div style="font-size: 13px; color: #f1f5f9; margin-top: 6px;">
               ${escapeHtml(categorySub)}
             </div>
           </div>
           <div style="font-family: ui-monospace, monospace; font-size: 11px; color: #94a3b8; text-align: right;">
-            Raw Category: <strong>${escapeHtml(category)}</strong>
+            <div>Raw Category: <strong>${escapeHtml(category)}</strong></div>
+            ${fusion?.evidence_completeness ? `<div style="margin-top: 4px; color: #38bdf8;">Coverage: <strong>${escapeHtml(fusion.evidence_completeness)}</strong></div>` : ''}
           </div>
         </div>
       </div>
+
+      ${fusion?.risk_score_breakdown ? `
+      <div style="margin-bottom: 16px;">
+        <div class="card-title">Evidence Category Breakdown (0 - 100 Points)</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+          <div class="card">
+            <div class="card-title">Sender &amp; Auth (Max 25)</div>
+            <div class="card-val">${fusion.risk_score_breakdown.sender_auth.score} <span style="font-size: 11px; color: var(--text-muted);">/ 25</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.sender_auth.explanation)}</div>
+          </div>
+          <div class="card">
+            <div class="card-title">URL Intelligence (Max 25)</div>
+            <div class="card-val">${fusion.risk_score_breakdown.url_intelligence.score} <span style="font-size: 11px; color: var(--text-muted);">/ 25</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.url_intelligence.explanation)}</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Content &amp; Language (Max 20)</div>
+            <div class="card-val">${fusion.risk_score_breakdown.content_language.score} <span style="font-size: 11px; color: var(--text-muted);">/ 20</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.content_language.explanation)}</div>
+          </div>
+          <div class="card">
+            <div class="card-title">DistilBERT NLP (Max 20)${fusion.risk_score_breakdown.ml_model.is_dampened ? ' <span style="color: var(--emerald);">[Dampened]</span>' : ''}</div>
+            <div class="card-val">${fusion.risk_score_breakdown.ml_model.score} <span style="font-size: 11px; color: var(--text-muted);">/ 20</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.ml_model.explanation)}</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Header &amp; IP (Max 10)</div>
+            <div class="card-val">${fusion.risk_score_breakdown.header_ip.score} <span style="font-size: 11px; color: var(--text-muted);">/ 10</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.header_ip.explanation)}</div>
+          </div>
+        </div>
+      </div>` : ''}
+
+      ${(fusion?.positive_evidence?.length || fusion?.negative_evidence?.length) ? `
+      <div class="grid-2" style="margin-bottom: 16px;">
+        <div class="card" style="border-color: rgba(16, 185, 129, 0.4);">
+          <div class="card-title" style="color: var(--emerald);">Mitigating Observations (${fusion?.positive_evidence?.length ?? 0})</div>
+          ${fusion?.positive_evidence && fusion.positive_evidence.length > 0 ? `
+            <ul class="factors-list">
+              ${fusion.positive_evidence.map((p) => `<li style="color: #6ee7b7;"><span style="color: var(--emerald); font-weight: bold;">[PASS]</span> ${escapeHtml(p)}</li>`).join('')}
+            </ul>
+          ` : '<p style="font-size: 12px; color: #64748b; font-style: italic;">No specific mitigating observations recorded.</p>'}
+        </div>
+
+        <div class="card" style="border-color: rgba(244, 63, 94, 0.4);">
+          <div class="card-title" style="color: var(--rose);">Risk Indicators Present (${fusion?.negative_evidence?.length ?? 0})</div>
+          ${fusion?.negative_evidence && fusion.negative_evidence.length > 0 ? `
+            <ul class="factors-list">
+              ${fusion.negative_evidence.map((n) => `<li style="color: #fca5a5;"><span style="color: var(--rose); font-weight: bold;">[RISK]</span> ${escapeHtml(n)}</li>`).join('')}
+            </ul>
+          ` : '<p style="font-size: 12px; color: #6ee7b7; font-style: italic;">Zero prominent risk indicators detected.</p>'}
+        </div>
+      </div>` : ''}
 
       ${fusion?.reasoning ? `
       <div style="margin-bottom: 16px;">

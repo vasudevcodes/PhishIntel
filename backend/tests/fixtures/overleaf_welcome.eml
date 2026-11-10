@@ -1,0 +1,310 @@
+Delivered-To: gamingkong052@gmail.com
+Received: by 2002:a05:6400:62e5:b0:2e4:1d07:101f with SMTP id kw37csp1261768ecb;
+        Thu, 8 Oct 2026 03:16:24 -0700 (PDT)
+X-Received: by 2002:a05:622a:4c11:b0:535:1134:91b with SMTP id d75a77b69052e-53575587502mr80251181cf.14.1791454584419;
+        Thu, 08 Oct 2026 03:16:24 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791454584; cv=none;
+        d=google.com; s=arc-20260327;
+        b=QA7zpQ1cNg2gmrPdTbky1PPqfDFMvTGgYEwGQlDZ0l1SGw3aywzhq0rBz5RtGzsDkS
+         h/at4+K4Go2um77HKo+63j9TD4naAhZAmGqkXMTDzUVU4XcL6K6K0arRCXL0JYJZb37z
+         8Qfu+aH35hnnUYki0Psb4r3niIUyZZ9ihiZPiYL2odiWtpzfD01do3ui5mUUfV4WZINR
+         DBfR6X9ijeA6kyj+XVudxCUcMLbiXI4mL2Xga2Cql5XW78NUQsR2CW49v4hC4RqDOMKy
+         A5TF8lcexBQF4ECh1GFIK1/MuCXMrnZLImROZ2wa1IF03nKFaP1gnRBDFTS6EZocF8xt
+         l4cg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=to:reply-to:mime-version:date:message-id:subject:from
+         :dkim-signature:dkim-signature;
+        bh=8IbS0irYdEqNY6Gcw6DrmPbw6IbeLK08lg+q12jBqmU=;
+        fh=GEcVAg/fMviZHZJiZOXRI6uwhcBIcLcpjgjF8ueCxnI=;
+        b=cJfRE1vhrRVSbBbAhcQurRSbZOtx1JorIDS+/zbADrilUsjkdS3q9VfGXJKLLq8ZTQ
+         n3he1Ve2O+9HHXb7o+bbEMZpG8YSFE4cC9uHOcucORl6waEOZ969CIrIk9aM5GcOFnfO
+         vPSov3GV3pY7mlJsp/R2k4egJauqiai3wvp6ouNtBoLSURgMaJ6RxVHuONnhIk10BPZ+
+         wZRuE7VShLcWr3R8hf7N5HcxkKf7iS3ysmIMSXl2b6e8fhQ9aa0VQZW2QJmvaelB8/zf
+         VZiG1XekQwTIw2FwdCtaMte9QPNOZMrCD1UhJEWcM8HXzVPIS3Ix+fr7/fDcOGfupHR0
+         Sffw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@overleaf.com header.s=s1 header.b=LTkhhNsw;
+       dkim=pass header.i=@sendgrid.info header.s=smtpapi header.b=la7kdV2p;
+       spf=pass (google.com: domain of bounces+794683-1770-gamingkong052=gmail.com@email.overleaf.com designates 50.31.42.215 as permitted sender) smtp.mailfrom="bounces+794683-1770-gamingkong052=gmail.com@email.overleaf.com";
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=overleaf.com
+Return-Path: <bounces+794683-1770-gamingkong052=gmail.com@email.overleaf.com>
+Received: from o1.email.overleaf.com (o1.email.overleaf.com. [50.31.42.215])
+        by mx.google.com with ESMTPS id d75a77b69052e-535722c7b2esi47795391cf.325.2026.10.08.03.16.24
+        for <gamingkong052@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 08 Oct 2026 03:16:24 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounces+794683-1770-gamingkong052=gmail.com@email.overleaf.com designates 50.31.42.215 as permitted sender) client-ip=50.31.42.215;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@overleaf.com header.s=s1 header.b=LTkhhNsw;
+       dkim=pass header.i=@sendgrid.info header.s=smtpapi header.b=la7kdV2p;
+       spf=pass (google.com: domain of bounces+794683-1770-gamingkong052=gmail.com@email.overleaf.com designates 50.31.42.215 as permitted sender) smtp.mailfrom="bounces+794683-1770-gamingkong052=gmail.com@email.overleaf.com";
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=overleaf.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=overleaf.com;
+	h=from:subject:date:mime-version:reply-to:to:content-type:cc:
+	content-type:date:feedback-id:from:subject:to;
+	s=s1; t=1791454584;
+	bh=8IbS0irYdEqNY6Gcw6DrmPbw6IbeLK08lg+q12jBqmU=;
+	b=LTkhhNsw8gfiacYMorqyoXJ1kh2zLkKFj0OvEhPg7KigFRCBQUlWOeVXD4iZj3tnOY7z
+	Fi+tTeulepz8AkYFwNQMe05qAWtBNlJmdbAqOSWtz+E0XP7f3ynOGtF0hjwRip/9r4REe4
+	S1bZi89fnz/QQihyahvcBuf9sG6r9V/4LMSAe6MbPWjxvLP30N87hNsXoxyhRN3vrcqbTx
+	WFfyHojj3HWX1D+SuSZZq2SZvlz8i//LUnQdUNet9fBfuRZecbfNyuKcLFiFcOwvyXEhvd
+	CLDB4sD4dvqwN4LzYPhCd8xPrFLag6+hNK8/YkXNMfN0StDDeJV2OizrZmJDTiWA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sendgrid.info;
+	h=from:subject:date:mime-version:reply-to:to:content-type:cc:
+	content-type:date:feedback-id:from:subject:to;
+	s=smtpapi; t=1791454584;
+	bh=8IbS0irYdEqNY6Gcw6DrmPbw6IbeLK08lg+q12jBqmU=;
+	b=la7kdV2p/Xg4soXilgfBXec0uG4DZ7IyuWIGFXCtChXRlBGUY7mefikq2REtmAW+0Y+5
+	RT3rbTMgtMe3mdV+jxJvrY/mq5B+fYfSFMGEikzTumHCKhFTXg9fUM6Xdwpthqj9Yf0gVS
+	H6D6geKtABWKyI+eOMXGasC/wKaGOPZ5w=
+Received: by recvd-774b755d6c-jqfj7 with SMTP id recvd-774b755d6c-jqfj7-1-6AC76D78-B
+	2026-10-08 10:16:24.035900507 +0000 UTC m=+753361.640488251
+Received: from [127.0.0.1] (unknown)
+	by geopod-ismtpd-8 (SG) with ESMTP
+	id UJYIKSYGQQi12h8PsVqBpA
+	for <gamingkong052@gmail.com>;
+	Thu, 08 Oct 2026 10:16:23.891 +0000 (UTC)
+From: Overleaf <info@overleaf.com>
+Subject: Welcome to Overleaf
+Message-ID: <55bf2513-6401-64a5-d173-5dbabbf5aee5@overleaf.com>
+Date: Thu, 08 Oct 2026 10:16:24 +0000 (UTC)
+MIME-Version: 1.0
+Reply-To: info@overleaf.com
+X-SG-EID: 
+ =?us-ascii?Q?u001=2EnbRA5h1gF2D76dbqIbAMMyfFn7Z5jZa01RLi7kMo8X5IbK5=2FrRjXqht+E?=
+ =?us-ascii?Q?pR2E7gPQJD1b8fNgeAXQ9WYYh9YEX+kX9DNVTNg?=
+ =?us-ascii?Q?w4KLtbD8biHiHba1QLm1Jp4Fn3=2FHrkUva2LckhA?=
+ =?us-ascii?Q?28lkg2kwZSydU4WNjCSG84lzU=2FFZ=2F=2F6osI5q9x3?=
+ =?us-ascii?Q?Ml0DnMYzAEm15HntjnrcJQLPvl7DVQTkR9foaYH?=
+ =?us-ascii?Q?ktRmNnG908sfFMV6zdWUrM=3D?=
+To: gamingkong052@gmail.com
+X-Entity-ID: u001.cthOsToDAypiMAMSnhoh1Q==
+Content-Type: multipart/alternative;
+ boundary="--_NmP-1d3f05f8b37abcc8-Part_1"
+
+----_NmP-1d3f05f8b37abcc8-Part_1
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+Thanks for signing up to Overleaf! If you ever get lost, you can log in aga=
+in (https://www.overleaf.com/login) with the email address 'gamingkong052@g=
+mail.com'.
+
+If you're new to LaTeX, take a look at our Help Guides (https://www.overlea=
+f.com/learn) and Templates (https://www.overleaf.com/templates).
+
+PS. We love talking to our users about Overleaf. Reply to this email to get=
+ in touch with us directly, whatever the reason. Questions, comments, probl=
+ems, suggestions, all welcome!
+
+Regards,
+The Overleaf Team - https://www.overleaf.com
+----_NmP-1d3f05f8b37abcc8-Part_1
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.=
+w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns=3D"http://www.w3.org/1999/xhtml" lang=3D"en" xml:lang=3D"en">
+<head>
+  <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8">
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1.0">
+  <meta name=3D"x-apple-disable-message-reformatting">
+  <!--[if mso]>
+  <style type=3D"text/css">
+    body, table, td, p, a, li { font-family: Arial, Helvetica, sans-serif !=
+important; }
+  </style>
+  <![endif]-->
+  <style>
+    body { margin: 0; padding: 0; background-color: #f4f5f6; }
+    img { border: 0; display: block; outline: none; text-decoration: none; =
+}
+    .email-layout-table { border-collapse: collapse !important; }
+    a[x-apple-data-detectors] { color: inherit !important; text-decoration:=
+ none !important; }
+
+    .force-overleaf-style a,
+    .force-overleaf-style a[href] {
+      color: #1e6b41 !important;
+      text-decoration: underline !important;
+      -moz-hyphens: none;
+      -ms-hyphens: none;
+      -webkit-hyphens: none;
+      hyphens: none;
+    }
+    .force-overleaf-style a:visited,
+    .force-overleaf-style a[href]:visited { color: #1e6b41; }
+    .force-overleaf-style a:hover,
+    .force-overleaf-style a[href]:hover { color: #155a30; }
+
+    @media only screen and (min-width: 621px) {
+      .email-card-inner { padding: 56px !important; }
+    }
+    @media only screen and (max-width: 620px) {
+      .email-container { width: 100% !important; max-width: 100% !important=
+; }
+      .email-outer-cell { padding: 0 10px !important; }
+      .email-header-cell { padding: 16px 0 !important; }
+    }
+  </style>
+</head>
+<body bgcolor=3D"#f4f5f6" style=3D"margin: 0; padding: 0; background-color:=
+ #f4f5f6; font-family: Arial, Helvetica, sans-serif;">
+
+  <!-- Prevent Gmail iOS font size manipulation -->
+  <div style=3D"display: none; white-space: nowrap; font: 15px courier; lin=
+e-height: 0;">
+    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &=
+nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &=
+nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+  </div>
+
+  <table class=3D"email-layout-table" role=3D"presentation" border=3D"0" ce=
+llpadding=3D"0" cellspacing=3D"0" width=3D"100%" bgcolor=3D"#f4f5f6" style=
+=3D"background-color: #f4f5f6; min-width: 100%;">
+    <tr>
+      <td class=3D"email-outer-cell" align=3D"center" valign=3D"top" style=
+=3D"padding: 40px 10px;">
+
+        <!--[if mso]>
+        <table role=3D"presentation" border=3D"0" cellpadding=3D"0" cellspa=
+cing=3D"0" width=3D"600" align=3D"center"><tr><td>
+        <![endif]-->
+        <table class=3D"email-container email-layout-table" role=3D"present=
+ation" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" styl=
+e=3D"max-width: 600px;">
+
+          <!-- Logo header -->
+          <tr>
+            <td class=3D"email-header-cell" style=3D"padding: 0 0 24px 0;">
+             =20
+    <a href=3D"https://www.overleaf.com" style=3D"text-decoration: none; di=
+splay: inline-block; border: 0;">
+      <img
+        src=3D"https://cdn.overleaf.com/img/ol-brand/email-logo@2x.png"
+        alt=3D"Overleaf"
+        width=3D"139"
+        height=3D"40"
+        style=3D"display: block; border: 0; width: 139px; height: 40px;"
+      >
+    </a>
+ =20
+            </td>
+          </tr>
+
+          <!-- White content card -->
+          <tr>
+            <td bgcolor=3D"#ffffff" style=3D"background-color: #ffffff; bor=
+der-radius: 8px; overflow: hidden;">
+              <table class=3D"email-layout-table" role=3D"presentation" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%">
+                <tr>
+                  <td
+                    class=3D"email-card-inner"
+                    style=3D"padding: 32px 24px; font-family: Arial, Helvet=
+ica, sans-serif; font-size: 16px; line-height: 1.5; color: #1b222c;"
+                  >
+                   =20
+<h2 style=3D"margin: 0 0 16px 0; font-family: Arial, Helvetica, sans-serif;=
+ font-size: 30px; font-weight: 600; color: #1b222c; line-height: 40px;">
+  Welcome to Overleaf
+</h2>
+
+
+
+<p style=3D"margin: 0 0 16px 0;">
+  Hi,
+</p>
+
+
+
+<p class=3D"force-overleaf-style" style=3D"margin: 0 0 16px 0;">
+  Thanks for signing up to Overleaf! If you ever get lost, you can <a href=
+=3D"https://www.overleaf.com/login">log in again</a> with the email address=
+ 'gamingkong052@gmail.com'.
+</p>
+
+<p class=3D"force-overleaf-style" style=3D"margin: 0 0 16px 0;">
+  If you're new to LaTeX, take a look at our <a href=3D"https://www.overlea=
+f.com/learn">Help Guides</a> and <a href=3D"https://www.overleaf.com/templa=
+tes">Templates</a>.
+</p>
+
+<p class=3D"force-overleaf-style" style=3D"margin: 0 0 16px 0;">
+  PS. We love talking to our users about Overleaf. Reply to this email to g=
+et in touch with us directly, whatever the reason. Questions, comments, pro=
+blems, suggestions, all welcome!
+</p>
+
+
+
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer spacer -->
+          <tr>
+            <td style=3D"height: 24px; font-size: 24px; line-height: 24px; =
+mso-line-height-rule: exactly;">&nbsp;</td>
+          </tr>
+
+          <!-- Footer tagline -->
+          <tr>
+            <td align=3D"center" style=3D"padding: 0 0 48px 0;">
+             =20
+    <!--[if mso]>
+    <img
+      src=3D"https://cdn.overleaf.com/img/ol-brand/email-footer-tagline@2x.=
+png"
+      alt=3D"The home of scientific and technical writing"
+      width=3D"452"
+      height=3D"25"
+      style=3D"display: block; border: 0;"
+    />
+    <![endif]-->
+    <!--[if !mso]><!-->
+    <img
+      src=3D"https://cdn.overleaf.com/img/ol-brand/email-footer-tagline@2x.=
+png"
+      alt=3D"The home of scientific and technical writing"
+      style=3D"display: block; border: 0; width: 100%; max-width: 452px; he=
+ight: auto;"
+    >
+    <!--<![endif]-->
+ =20
+            </td>
+          </tr>
+
+          <!-- Footer site info -->
+         =20
+
+         =20
+
+        </table>
+        <!--[if mso]>
+        </td></tr></table>
+        <![endif]-->
+
+      </td>
+    </tr>
+  </table>
+
+<img src=3D"http://email-link.overleaf.com/wf/open?upn=3Du001.kg00pI-2Fok6-=
+2FvTq6ha4jI-2BFhnsou3ik1R8Nmbs8dL5MwFIl4-2F-2F2C7Jnggj6FAfc9iIWy54nY9rvYAcj=
+-2BBo6r3OfPukG5MpZ9CqkTA4Bii8NSk0gmQi4-2FEHJhM5MQMzAbQitDcHT4NtM9Fsxa8D-2Bp=
+rTlDCcnL3pzqgQsCTAEObbfPrg4-2B4UlaDvWGEDY2YKLRTKxmTXBX2GE-2FKaSQtaLUS8w-3D-=
+3D" alt=3D"" width=3D"1" height=3D"1" border=3D"0" style=3D"height:1px !imp=
+ortant;width:1px !important;border-width:0 !important;margin-top:0 !importa=
+nt;margin-bottom:0 !important;margin-right:0 !important;margin-left:0 !impo=
+rtant;padding-top:0 !important;padding-bottom:0 !important;padding-right:0 =
+!important;padding-left:0 !important;"/></body>
+</html>
+----_NmP-1d3f05f8b37abcc8-Part_1--
