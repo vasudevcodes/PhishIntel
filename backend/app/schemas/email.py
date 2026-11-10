@@ -46,7 +46,6 @@ class ExtractedURL(BaseModel):
     scheme: Optional[str] = Field(None, description="URL protocol scheme (e.g. http, https)")
     domain: Optional[str] = Field(None, description="Parsed domain / hostname")
     source: str = Field(..., description="Origin of URL: 'plain_text', 'html_href', or 'both'")
-    anchor_text: Optional[str] = Field(None, description="Anchor text from <a> tag if extracted from HTML")
 
 
 class AttachmentInfo(BaseModel):

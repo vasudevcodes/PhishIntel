@@ -85,10 +85,9 @@ def extract_urls(
 ) -> List[ExtractedURL]:
     """
     Extracts and deduplicates URLs from both plain-text content and HTML href attributes.
-    Preserves original URL values and visual anchor text without performing any network lookups.
+    Preserves original URL values without performing any network lookups.
     """
     url_sources: dict[str, Set[str]] = {}
-    url_anchors: dict[str, str] = {}
 
     # 1. Plain text URLs
     if plain_text:
@@ -105,9 +104,6 @@ def extract_urls(
                 href = a_tag["href"].strip()
                 if href.lower().startswith(("http://", "https://")):
                     url_sources.setdefault(href, set()).add("html_href")
-                    anchor_txt = a_tag.get_text(strip=True)
-                    if anchor_txt and href not in url_anchors:
-                        url_anchors[href] = anchor_txt
 
             # Also inspect text content of HTML for naked URLs
             for match in URL_REGEX.finditer(html_content):
@@ -144,7 +140,6 @@ def extract_urls(
                 scheme=scheme,
                 domain=domain,
                 source=source_label,
-                anchor_text=url_anchors.get(raw_url),
             )
         )
 
@@ -339,15 +334,8 @@ def parse_email_message(file_bytes: bytes, filename: str) -> EmailAnalysisRespon
     ip_candidates = extract_ip_candidates_from_received_headers(received_headers)
 
     # 5. Deterministic URL Intelligence Analysis (Phase 4A)
-    # Extract sender domain for contextual OIDC and link alignment evaluation
-    sender_domain = None
-    if header_info.from_header:
-        from_email_match = re.search(r"[\w.+-]+@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", header_info.from_header)
-        if from_email_match:
-            sender_domain = from_email_match.group(1).lower()
-
     try:
-        url_analysis = analyze_email_extracted_urls(extracted_urls, sender_domain=sender_domain)
+        url_analysis = analyze_email_extracted_urls(extracted_urls)
     except Exception as url_err:
         warnings.append(f"URL intelligence analysis non-fatal warning: {str(url_err)}")
         url_analysis = None
@@ -398,9 +386,6 @@ def parse_email_message(file_bytes: bytes, filename: str) -> EmailAnalysisRespon
             authentication_analysis=auth_analysis,
             ip_intelligence=ip_analysis,
             model_inference=model_result,
-            header_info=header_info,
-            body_info=body_info,
-            attachments=attachments,
         )
     except Exception as fuse_err:
         warnings.append(f"Evidence fusion analysis non-fatal warning: {str(fuse_err)}")
