@@ -1,4 +1,4 @@
-# PhishIntel — Phase 1: Foundation & Email Forensic Parser
+# PhishIntel
 
 PhishIntel is a modern, high-performance forensic email investigation platform designed to analyze raw RFC 5322 email files (`.eml`) in an isolated, secure local environment. 
 
