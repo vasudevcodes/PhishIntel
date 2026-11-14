@@ -37,6 +37,7 @@ export interface ExtractedURL {
   scheme: string | null;
   domain: string | null;
   source: 'plain_text' | 'html_href' | 'both';
+  anchor_text?: string | null;
 }
 
 export interface AttachmentInfo {
@@ -349,8 +350,37 @@ export interface IPEvidenceSummary {
   provenance_limitation: string;
 }
 
+export type EvidenceCompletenessStatus =
+  | 'FULL_COVERAGE'
+  | 'PARTIAL_COVERAGE'
+  | 'MINIMAL_OR_INSUFFICIENT';
+
+export interface CategoryScoreDetail {
+  category_name: string;
+  score: number;
+  max_score: number;
+  weight_percentage: number;
+  explanation: string;
+  rules_triggered: string[];
+  is_dampened?: boolean;
+}
+
+export interface CategoryScoresBreakdown {
+  sender_auth: CategoryScoreDetail;
+  url_intelligence: CategoryScoreDetail;
+  content_language: CategoryScoreDetail;
+  ml_model: CategoryScoreDetail;
+  header_ip: CategoryScoreDetail;
+}
+
 export interface EvidenceFusionResult {
   overall_category: AssessmentCategory;
+  overall_risk_score?: number;
+  risk_score_breakdown?: CategoryScoresBreakdown | null;
+  evidence_completeness?: EvidenceCompletenessStatus;
+  evidence_completeness_detail?: string;
+  positive_evidence?: string[];
+  negative_evidence?: string[];
   model_evidence: ModelEvidenceInterpretation;
   url_evidence: URLEvidenceSummary;
   auth_evidence: AuthEvidenceSummary;

@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Optional
 
 import torch
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, PreTrainedTokenizerBase
 
 from app.schemas.evidence_fusion import (
     ModelInferenceEvidence,
@@ -48,7 +48,7 @@ class ModelInferenceEngine:
         self.checkpoint_dir = Path(checkpoint_dir or env_dir or DEFAULT_CHECKPOINT_DIR)
         self.preferred_device = device
         self._device: Optional[torch.device] = None
-        self._tokenizer: Optional[AutoTokenizer] = None
+        self._tokenizer: Optional[PreTrainedTokenizerBase] = None
         self._model: Optional[AutoModelForSequenceClassification] = None
         self._load_error: Optional[str] = None
         self._initialized: bool = False
@@ -149,8 +149,8 @@ class ModelInferenceEngine:
             )
 
         # Consistent input construction (Phase 3B): subject + "\n\n" + body
-        sub_str = str(subject) if subject is not None else ""
-        body_str = str(body) if body is not None else ""
+        sub_str = subject if subject is not None else ""
+        body_str = body if body is not None else ""
         input_text = f"{sub_str}\n\n{body_str}"
 
         try:

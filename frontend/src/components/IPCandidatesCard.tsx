@@ -51,7 +51,7 @@ export const IPCandidatesCard: FC<IPCandidatesCardProps> = ({
         <div className="flex items-center space-x-2.5 text-navy-900">
           <Network className="w-5 h-5 text-purple-600" />
           <h3 className="text-base font-semibold tracking-tight">
-            Transit Hop Reconstruction &amp; IP Intelligence ({candidates.length})
+            IP Intelligence ({candidates.length})
           </h3>
         </div>
 
@@ -132,24 +132,10 @@ export const IPCandidatesCard: FC<IPCandidatesCardProps> = ({
         </div>
       )}
 
-      {/* Warnings if any */}
-      {ipIntelligence && ipIntelligence.warnings.length > 0 && (
-        <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
-          <div className="flex items-center space-x-1.5 font-semibold text-amber-800">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-            <span>IP Transit Anomalies:</span>
-          </div>
-          <ul className="list-disc list-inside space-y-0.5 font-mono text-amber-800 pl-1">
-            {ipIntelligence.warnings.map((w, idx) => (
-              <li key={idx}>{w}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {candidates.length === 0 ? (
-        <div className="text-center py-8 text-slate-500 font-mono text-xs">
-          No IP address candidates detected in Received headers.
+        <div className="text-center py-8 text-slate-500 font-mono text-xs flex items-center justify-center space-x-1.5">
+          <AlertTriangle className="w-4 h-4 text-amber-500" />
+          <span>No IP address candidates detected in Received headers.</span>
         </div>
       ) : (
         <div className="overflow-x-auto border border-surface-border rounded-xl">

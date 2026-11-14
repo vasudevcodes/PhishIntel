@@ -95,8 +95,6 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
   const isModelEvaluated = modelStatus === 'EVALUATED';
   const rawScore = model?.uncalibrated_score ?? fusion?.model_evidence?.uncalibrated_score;
   const predictedLabel = model?.predicted_label ?? fusion?.model_evidence?.predicted_label;
-  const modelCaveat = fusion?.model_evidence?.caveat ||
-    'Score is an uncalibrated DistilBERT output trained on the PhishMMF dataset. This score represents a text-similarity heuristic and NOT a validated real-world probability.';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -248,16 +246,6 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
       line-height: 1.6;
     }
     .disclaimer-box strong { color: var(--cyan-light); }
-    .caveat-box {
-      background: rgba(69, 26, 3, 0.4);
-      border: 1px solid rgba(245, 158, 11, 0.5);
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 11px;
-      color: #fde68a;
-      line-height: 1.6;
-    }
-    .caveat-box strong { color: #f59e0b; }
     .url-string { word-break: break-all; color: #cbd5e1; font-size: 11px; }
     ul.factors-list { list-style: none; padding-left: 0; }
     ul.factors-list li {
@@ -313,20 +301,110 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
       <div class="section-title">1. Executive Summary &amp; Evidence Fusion</div>
       
       <div class="banner" style="background: ${categoryBg}; border-color: ${categoryColor};">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <div>
             <span class="badge" style="background: ${categoryBg}; color: ${categoryColor}; border-color: ${categoryColor}; font-size: 12px;">
               ${escapeHtml(categoryTitle)}
             </span>
+            ${fusion?.overall_risk_score !== undefined ? `
+            <span class="badge" style="background: rgba(15, 23, 42, 0.7); color: #ffffff; border-color: rgba(255,255,255,0.2); font-size: 13px; margin-left: 8px;">
+              Score: <strong>${fusion.overall_risk_score}</strong> / 100
+            </span>` : ''}
             <div style="font-size: 13px; color: #f1f5f9; margin-top: 6px;">
               ${escapeHtml(categorySub)}
             </div>
           </div>
-          <div style="font-family: ui-monospace, monospace; font-size: 11px; color: #94a3b8; text-align: right;">
-            Raw Category: <strong>${escapeHtml(category)}</strong>
+          <div style="font-family: ui-monospace, monospace; font-size: 12px; color: #94a3b8; text-align: right;">
+            Overall Risk Score: <strong style="font-size: 18px; color: ${categoryColor};">${fusion?.overall_risk_score !== undefined ? `${fusion.overall_risk_score}/100` : 'N/A'}</strong><br/>
+            Category: <strong>${escapeHtml(category)}</strong>
           </div>
         </div>
       </div>
+
+      ${fusion?.risk_score_breakdown ? `
+      <div style="margin-bottom: 16px;">
+        <div class="card-title">Five-Category Risk Point Contributions (Max 100 Points)</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 8px;">
+          <div class="card" style="padding: 10px;">
+            <div style="font-size: 11px; font-weight: bold; color: var(--cyan);">Sender &amp; Auth (25%)</div>
+            <div style="font-size: 16px; font-weight: bold; font-family: monospace; color: #fff; margin: 4px 0;">${fusion.risk_score_breakdown.sender_auth.score} / ${fusion.risk_score_breakdown.sender_auth.max_score}</div>
+            <div style="font-size: 10px; color: #94a3b8;">${escapeHtml(fusion.risk_score_breakdown.sender_auth.explanation)}</div>
+          </div>
+          <div class="card" style="padding: 10px;">
+            <div style="font-size: 11px; font-weight: bold; color: var(--cyan);">URLs &amp; Links (25%)</div>
+            <div style="font-size: 16px; font-weight: bold; font-family: monospace; color: #fff; margin: 4px 0;">${fusion.risk_score_breakdown.url_intelligence.score} / ${fusion.risk_score_breakdown.url_intelligence.max_score}</div>
+            <div style="font-size: 10px; color: #94a3b8;">${escapeHtml(fusion.risk_score_breakdown.url_intelligence.explanation)}</div>
+          </div>
+          <div class="card" style="padding: 10px;">
+            <div style="font-size: 11px; font-weight: bold; color: var(--cyan);">Content &amp; Language (20%)</div>
+            <div style="font-size: 16px; font-weight: bold; font-family: monospace; color: #fff; margin: 4px 0;">${fusion.risk_score_breakdown.content_language.score} / ${fusion.risk_score_breakdown.content_language.max_score}</div>
+            <div style="font-size: 10px; color: #94a3b8;">${escapeHtml(fusion.risk_score_breakdown.content_language.explanation)}</div>
+          </div>
+          <div class="card" style="padding: 10px;">
+            <div style="font-size: 11px; font-weight: bold; color: var(--cyan);">ML DistilBERT (20%)</div>
+            <div style="font-size: 16px; font-weight: bold; font-family: monospace; color: #fff; margin: 4px 0;">${fusion.risk_score_breakdown.ml_model.score} / ${fusion.risk_score_breakdown.ml_model.max_score}</div>
+            <div style="font-size: 10px; color: #94a3b8;">${escapeHtml(fusion.risk_score_breakdown.ml_model.explanation)}</div>
+          </div>
+          <div class="card" style="padding: 10px;">
+            <div style="font-size: 11px; font-weight: bold; color: var(--cyan);">Header &amp; IP (10%)</div>
+            <div style="font-size: 16px; font-weight: bold; font-family: monospace; color: #fff; margin: 4px 0;">${fusion.risk_score_breakdown.header_ip.score} / ${fusion.risk_score_breakdown.header_ip.max_score}</div>
+            <div style="font-size: 10px; color: #94a3b8;">${escapeHtml(fusion.risk_score_breakdown.header_ip.explanation)}</div>
+          </div>
+        </div>
+      </div>` : ''}
+
+      ${fusion?.risk_score_breakdown ? `
+      <div style="margin-bottom: 16px;">
+        <div class="card-title">Evidence Category Breakdown (0 - 100 Points)</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+          <div class="card">
+            <div class="card-title">Sender &amp; Auth (Max 25)</div>
+            <div class="card-val">${fusion.risk_score_breakdown.sender_auth.score} <span style="font-size: 11px; color: var(--text-muted);">/ 25</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.sender_auth.explanation)}</div>
+          </div>
+          <div class="card">
+            <div class="card-title">URL Intelligence (Max 25)</div>
+            <div class="card-val">${fusion.risk_score_breakdown.url_intelligence.score} <span style="font-size: 11px; color: var(--text-muted);">/ 25</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.url_intelligence.explanation)}</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Content &amp; Language (Max 20)</div>
+            <div class="card-val">${fusion.risk_score_breakdown.content_language.score} <span style="font-size: 11px; color: var(--text-muted);">/ 20</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.content_language.explanation)}</div>
+          </div>
+          <div class="card">
+            <div class="card-title">DistilBERT NLP (Max 20)${fusion.risk_score_breakdown.ml_model.is_dampened ? ' <span style="color: var(--emerald);">[Dampened]</span>' : ''}</div>
+            <div class="card-val">${fusion.risk_score_breakdown.ml_model.score} <span style="font-size: 11px; color: var(--text-muted);">/ 20</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.ml_model.explanation)}</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Header &amp; IP (Max 10)</div>
+            <div class="card-val">${fusion.risk_score_breakdown.header_ip.score} <span style="font-size: 11px; color: var(--text-muted);">/ 10</span></div>
+            <div class="card-sub">${escapeHtml(fusion.risk_score_breakdown.header_ip.explanation)}</div>
+          </div>
+        </div>
+      </div>` : ''}
+
+      ${(fusion?.positive_evidence?.length || fusion?.negative_evidence?.length) ? `
+      <div class="grid-2" style="margin-bottom: 16px;">
+        <div class="card" style="border-color: rgba(16, 185, 129, 0.4);">
+          <div class="card-title" style="color: var(--emerald);">Mitigating Observations (${fusion?.positive_evidence?.length ?? 0})</div>
+          ${fusion?.positive_evidence && fusion.positive_evidence.length > 0 ? `
+            <ul class="factors-list">
+              ${fusion.positive_evidence.map((p) => `<li style="color: #6ee7b7;"><span style="color: var(--emerald); font-weight: bold;">[PASS]</span> ${escapeHtml(p)}</li>`).join('')}
+            </ul>
+          ` : '<p style="font-size: 12px; color: #64748b; font-style: italic;">No specific mitigating observations recorded.</p>'}
+        </div>
+
+        <div class="card" style="border-color: rgba(244, 63, 94, 0.4);">
+          <div class="card-title" style="color: var(--rose);">Risk Indicators Present (${fusion?.negative_evidence?.length ?? 0})</div>
+          ${fusion?.negative_evidence && fusion.negative_evidence.length > 0 ? `
+            <ul class="factors-list">
+              ${fusion.negative_evidence.map((n) => `<li style="color: #fca5a5;"><span style="color: var(--rose); font-weight: bold;">[RISK]</span> ${escapeHtml(n)}</li>`).join('')}
+            </ul>
+          ` : '<p style="font-size: 12px; color: #6ee7b7; font-style: italic;">Zero prominent risk indicators detected.</p>'}
+        </div>
+      </div>` : ''}
 
       ${fusion?.reasoning ? `
       <div style="margin-bottom: 16px;">
@@ -379,10 +457,10 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
           <div class="card-title">Predicted Classification Label</div>
           <div class="card-val">
             ${isModelEvaluated ? (
-              predictedLabel === 1
-                ? '<span style="color: var(--rose);">1 (Phishing Indicator)</span>'
-                : '<span style="color: var(--sky);">0 (Benign Pattern)</span>'
-            ) : `<span style="color: var(--text-muted);">N/A (${escapeHtml(modelStatus)})</span>`}
+      predictedLabel === 1
+        ? '<span style="color: var(--rose);">1 (Phishing Indicator)</span>'
+        : '<span style="color: var(--sky);">0 (Benign Pattern)</span>'
+    ) : `<span style="color: var(--text-muted);">N/A (${escapeHtml(modelStatus)})</span>`}
           </div>
           <div class="card-sub">${isModelEvaluated ? 'Decision boundary: 0.5000' : 'Inference not performed'}</div>
         </div>
@@ -400,14 +478,6 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
       <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 12px;">
         <strong>Forensic Interpretation: </strong>${escapeHtml(fusion.model_evidence.interpretation)}
       </div>` : ''}
-
-      <div class="caveat-box">
-        <strong>Prominent Calibration Caveat: </strong>
-        ${escapeHtml(modelCaveat)}
-        <div style="margin-top: 4px; font-weight: 600;">
-          Strict Rule: Score is NEVER represented as a calibrated probability or percentage certainty.
-        </div>
-      </div>
     </div>
 
     <!-- URL Intelligence -->
@@ -454,18 +524,19 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
             ${data.urls.length === 0 ? `
               <tr><td colspan="6" style="text-align: center; color: #64748b; font-style: italic;">No URLs extracted from email text or HTML parts.</td></tr>
             ` : data.urls.map((u, idx) => {
-              const uRes = urlAnalysis?.url_results?.find((r) => r.original_url === u.url || r.url_index === idx);
-              const hostClass = uRes?.features?.host_classification || 'unknown';
-              const riskTier = uRes?.heuristic_risk_category || 'INFO';
-              const riskScore = uRes?.heuristic_risk_score !== undefined ? `${uRes.heuristic_risk_score}/100` : 'N/A';
-              const obs = uRes?.observations || [];
+      const uRes = urlAnalysis?.url_results?.find((r) => r.original_url === u.url || r.url_index === idx);
+      const hostClass = uRes?.features?.host_classification || 'unknown';
+      const riskTier = uRes?.heuristic_risk_category || 'INFO';
+      const riskScore = uRes?.heuristic_risk_score !== undefined ? `${uRes.heuristic_risk_score}/100` : 'N/A';
+      const obs = uRes?.observations || [];
 
-              return `
+      return `
               <tr>
                 <td>#${idx}</td>
                 <td><strong>${escapeHtml(u.scheme ? u.scheme.toUpperCase() : 'RAW')}</strong></td>
                 <td>
                   <strong>${escapeHtml(u.domain || '(Unknown)')}</strong>
+                  ${u.anchor_text && u.anchor_text.trim() !== u.url.trim() ? `<div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">Label: &ldquo;${escapeHtml(u.anchor_text)}&rdquo;</div>` : ''}
                   <div class="url-string">${escapeHtml(u.url)}</div>
                 </td>
                 <td>${escapeHtml(hostClass)}</td>
@@ -487,7 +558,7 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
                   ` : '<span style="color: #64748b; font-style: italic;">No structural anomalies detected.</span>'}
                 </td>
               </tr>`;
-            }).join('')}
+    }).join('')}
           </tbody>
         </table>
       </div>
@@ -556,9 +627,9 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
       </div>
     </div>
 
-    <!-- IP Intelligence & Transit Reconstruction -->
+    <!-- IP Intelligence -->
     <div class="section">
-      <div class="section-title">5. IP Intelligence &amp; Transit Reconstruction</div>
+      <div class="section-title">5. IP Intelligence</div>
 
       ${ipIntel ? `
       <div class="card" style="margin-bottom: 14px;">
@@ -593,16 +664,16 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
             ${data.ip_candidates.length === 0 ? `
               <tr><td colspan="6" style="text-align: center; color: #64748b; font-style: italic;">No IP candidates detected in Received headers.</td></tr>
             ` : data.ip_candidates.map((cand) => {
-              const cIntel = ipIntel?.candidates?.find((c) => c.ip === cand.ip && (c.hop_index === cand.hop_index || c.hop_index === null));
-              const isOrigin = ipIntel?.origin_candidate && ipIntel.origin_candidate.ip === cand.ip && ipIntel.origin_candidate.hop_index === cand.hop_index;
-              const geo = cIntel?.geolocation;
-              const geoStr = geo
-                ? [geo.city_name, geo.country_name || geo.country_code].filter(Boolean).join(', ')
-                : cIntel?.geolocation_status === 'NOT_ROUTABLE'
-                ? 'Non-routable'
-                : 'DB Unavailable';
+      const cIntel = ipIntel?.candidates?.find((c) => c.ip === cand.ip && (c.hop_index === cand.hop_index || c.hop_index === null));
+      const isOrigin = ipIntel?.origin_candidate && ipIntel.origin_candidate.ip === cand.ip && ipIntel.origin_candidate.hop_index === cand.hop_index;
+      const geo = cIntel?.geolocation;
+      const geoStr = geo
+        ? [geo.city_name, geo.country_name || geo.country_code].filter(Boolean).join(', ')
+        : cIntel?.geolocation_status === 'NOT_ROUTABLE'
+          ? 'Non-routable'
+          : 'DB Unavailable';
 
-              return `
+      return `
               <tr>
                 <td>#${cand.hop_index}</td>
                 <td><strong>${escapeHtml(cand.ip)}</strong></td>
@@ -611,7 +682,7 @@ export function generateForensicReportHtml(data: EmailAnalysisResponse, generate
                 <td>${cIntel?.is_routable ? '<span style="color: var(--sky);">Public Internet</span>' : '<span style="color: var(--text-muted);">Non-Routable</span>'}</td>
                 <td>${escapeHtml(geoStr)}</td>
               </tr>`;
-            }).join('')}
+    }).join('')}
           </tbody>
         </table>
       </div>

@@ -57,7 +57,7 @@ export function App() {
 
               <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
                 A professional digital forensics platform for email investigation. Ingest RFC 5322{' '}
-                <code className="text-navy-900 font-semibold font-mono text-xs px-1.5 py-0.5 rounded bg-slate-200/70">.eml</code> files to evaluate fine-tuned DistilBERT transformer text inference, cryptographic SPF/DKIM/DMARC headers, IP transit reconstruction, and static zero-touch URL heuristics in an isolated local environment.
+                <code className="text-navy-900 font-semibold font-mono text-xs px-1.5 py-0.5 rounded bg-slate-200/70">.eml</code> files to evaluate fine-tuned DistilBERT transformer text inference, cryptographic SPF/DKIM/DMARC headers, IP intelligence, and static zero-touch URL heuristics in an isolated local environment.
               </p>
             </div>
 
@@ -274,6 +274,7 @@ export function App() {
               {/* Extracted URLs Card: in 'all' or 'urls' tab */}
               {(activeTab === 'all' || activeTab === 'urls') && (
                 <ExtractedURLsCard
+                  key={`urls-${analysisData.filename}-${analysisData.parsed_at}`}
                   urls={analysisData.urls}
                   urlAnalysis={analysisData.url_analysis}
                 />

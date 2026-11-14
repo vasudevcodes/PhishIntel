@@ -150,7 +150,9 @@ def test_05_dmarc_pass_and_fail():
     )
     res_pass = analyze_email_authentication(h_pass)
     assert res_pass.dmarc.status == AuthResultStatus.PASS
+    assert res_pass.dmarc.policy is not None
     assert res_pass.dmarc.policy.lower() == "reject"
+    assert res_pass.dmarc.disposition is not None
     assert res_pass.dmarc.disposition.lower() == "none"
     assert res_pass.dmarc.header_from == "corporate.com"
 

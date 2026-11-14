@@ -71,6 +71,37 @@ describe('Real Frontend-to-Backend Contract Verification (8 Real Fixtures)', () 
           `Invalid overall category: ${ef.overall_category}`
         );
 
+        // Verify Phase 10 numerical risk score and 5-category breakdown
+        assert.ok(typeof ef.overall_risk_score === 'number', 'overall_risk_score must be a number');
+        assert.ok(
+          ef.overall_risk_score >= 0 && ef.overall_risk_score <= 100,
+          `overall_risk_score must be in [0, 100], got ${ef.overall_risk_score}`
+        );
+
+        assert.ok(ef.risk_score_breakdown, 'risk_score_breakdown must be present');
+        assert.ok(typeof ef.risk_score_breakdown.sender_auth.score === 'number');
+        assert.strictEqual(ef.risk_score_breakdown.sender_auth.max_score, 25);
+        assert.ok(typeof ef.risk_score_breakdown.url_intelligence.score === 'number');
+        assert.strictEqual(ef.risk_score_breakdown.url_intelligence.max_score, 25);
+        assert.ok(typeof ef.risk_score_breakdown.content_language.score === 'number');
+        assert.strictEqual(ef.risk_score_breakdown.content_language.max_score, 20);
+        assert.ok(typeof ef.risk_score_breakdown.ml_model.score === 'number');
+        assert.strictEqual(ef.risk_score_breakdown.ml_model.max_score, 20);
+        assert.ok(typeof ef.risk_score_breakdown.header_ip.score === 'number');
+        assert.strictEqual(ef.risk_score_breakdown.header_ip.max_score, 10);
+
+        assert.ok(
+          [
+            'FULL_COVERAGE',
+            'PARTIAL_COVERAGE',
+            'MINIMAL_OR_INSUFFICIENT',
+          ].includes(ef.evidence_completeness || ''),
+          `Invalid evidence completeness: ${ef.evidence_completeness}`
+        );
+
+        assert.ok(Array.isArray(ef.positive_evidence), 'positive_evidence must be an array');
+        assert.ok(Array.isArray(ef.negative_evidence), 'negative_evidence must be an array');
+
         assert.ok(ef.reasoning && ef.reasoning.length > 0, 'Reasoning must be present');
         assert.ok(Array.isArray(ef.contributing_factors), 'contributing_factors must be array');
         assert.ok(

@@ -227,6 +227,7 @@ def test_missing_checkpoint_produces_explicit_unavailable_status():
     assert result.status == ModelInferenceStatus.UNAVAILABLE
     assert result.uncalibrated_score is None
     assert result.predicted_label is None
+    assert result.error_message is not None
     assert "not found" in result.error_message.lower()
 
 
@@ -249,6 +250,7 @@ def test_model_exception_does_not_result_in_automatic_benign_verdict():
     assert error_result.status == ModelInferenceStatus.ERROR
     assert error_result.uncalibrated_score is None
     assert error_result.predicted_label is None
+    assert error_result.error_message is not None
     assert "Simulated tokenizer tensor failure" in error_result.error_message
 
     # Test fusion behavior with this error:

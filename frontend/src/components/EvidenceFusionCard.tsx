@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import React from 'react';
 import {
   ShieldAlert,
   AlertTriangle,
@@ -11,11 +12,14 @@ import {
   Info,
   CheckCircle2,
   ArrowRight,
+  ShieldCheck,
+  Layers,
 } from 'lucide-react';
 import type {
   EvidenceFusionResult,
   AssessmentCategory,
   ModelInferenceStatus,
+  CategoryScoreDetail,
 } from '../types/forensics';
 
 interface EvidenceFusionCardProps {
@@ -45,6 +49,10 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
         return {
           title: 'High Risk Indicators Present',
           badgeClass: 'bg-red-50 text-red-700 border-red-200',
+          scoreBadgeClass: 'bg-red-50 text-red-700 border-red-200',
+          scoreBandLabel: 'High Risk (75–100)',
+          scoreBoxClass: 'bg-red-50/70 border-red-200 text-red-700',
+          progressClass: 'bg-red-600',
           icon: <ShieldAlert className="w-6 h-6 text-red-600 flex-shrink-0" />,
           cardBorder: 'border-red-200',
           bgHeader: 'bg-red-50/50',
@@ -55,6 +63,10 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
         return {
           title: 'Review Recommended',
           badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+          scoreBadgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+          scoreBandLabel: 'Review Recommended (26–74)',
+          scoreBoxClass: 'bg-amber-50/70 border-amber-200 text-amber-800',
+          progressClass: 'bg-amber-500',
           icon: <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" />,
           cardBorder: 'border-amber-200',
           bgHeader: 'bg-amber-50/50',
@@ -65,6 +77,10 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
         return {
           title: 'Low Risk Indicators Observed',
           badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+          scoreBadgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+          scoreBandLabel: 'Low Risk Observed (0–25)',
+          scoreBoxClass: 'bg-emerald-50/70 border-emerald-200 text-emerald-800',
+          progressClass: 'bg-emerald-500',
           icon: <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />,
           cardBorder: 'border-emerald-200',
           bgHeader: 'bg-emerald-50/50',
@@ -76,6 +92,10 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
         return {
           title: 'Insufficient Evidence',
           badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
+          scoreBadgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
+          scoreBandLabel: 'Insufficient Evidence',
+          scoreBoxClass: 'bg-slate-100 border-slate-200 text-slate-700',
+          progressClass: 'bg-slate-400',
           icon: <HelpCircle className="w-6 h-6 text-slate-500 flex-shrink-0" />,
           cardBorder: 'border-surface-border',
           bgHeader: 'bg-slate-50',
@@ -88,24 +108,36 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
   const catConfig = getCategoryConfig(fusion.overall_category);
   const model = fusion.model_evidence;
 
-  // Compute reassuring factors cleanly at component level
+  // Build reassuring factors fallback if positive_evidence is not directly populated
   const reassuringFactors: string[] = [];
-  if (fusion.auth_evidence.has_valid_authentication && !fusion.auth_evidence.has_explicit_failure) {
-    const passed = [
-      fusion.auth_evidence.spf_status === 'PASS' ? 'SPF' : null,
-      fusion.auth_evidence.dkim_status === 'PASS' ? 'DKIM' : null,
-      fusion.auth_evidence.dmarc_status === 'PASS' ? 'DMARC' : null,
-    ].filter(Boolean).join(', ');
-    reassuringFactors.push(`Reported cryptographic authentication passed (${passed || 'Valid'})`);
+  if (fusion.positive_evidence && fusion.positive_evidence.length > 0) {
+    reassuringFactors.push(...fusion.positive_evidence);
+  } else {
+    if (fusion.auth_evidence.has_valid_authentication && !fusion.auth_evidence.has_explicit_failure) {
+      const passed = [
+        fusion.auth_evidence.spf_status === 'PASS' ? 'SPF' : null,
+        fusion.auth_evidence.dkim_status === 'PASS' ? 'DKIM' : null,
+        fusion.auth_evidence.dmarc_status === 'PASS' ? 'DMARC' : null,
+      ].filter(Boolean).join(', ');
+      reassuringFactors.push(`Reported cryptographic authentication passed (${passed || 'Valid'})`);
+    }
+    if (model.status === 'EVALUATED' && model.predicted_label === 0) {
+      reassuringFactors.push('DistilBERT model observed benign language patterns');
+    }
+    if (fusion.url_evidence.total_urls > 0 && (fusion.url_evidence.highest_heuristic_risk === 'LOW' || fusion.url_evidence.highest_heuristic_risk === 'INFO')) {
+      reassuringFactors.push('All extracted URLs are within low structural risk thresholds');
+    }
+    if (fusion.url_evidence.total_urls === 0) {
+      reassuringFactors.push('Zero external URLs embedded in message body');
+    }
   }
-  if (model.status === 'EVALUATED' && model.predicted_label === 0) {
-    reassuringFactors.push('DistilBERT model observed benign language patterns');
-  }
-  if (fusion.url_evidence.total_urls > 0 && (fusion.url_evidence.highest_heuristic_risk === 'LOW' || fusion.url_evidence.highest_heuristic_risk === 'INFO')) {
-    reassuringFactors.push('All extracted URLs are within low structural risk thresholds');
-  }
-  if (fusion.url_evidence.total_urls === 0) {
-    reassuringFactors.push('Zero external URLs embedded in message body');
+
+  // Build negative factors fallback
+  const negativeFactors: string[] = [];
+  if (fusion.negative_evidence && fusion.negative_evidence.length > 0) {
+    negativeFactors.push(...fusion.negative_evidence);
+  } else if (fusion.contributing_factors && fusion.contributing_factors.length > 0) {
+    negativeFactors.push(...fusion.contributing_factors);
   }
 
   const renderModelStatusBadge = (status: ModelInferenceStatus) => {
@@ -130,6 +162,87 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
           </span>
         );
     }
+  };
+
+  const renderCategoryCard = (
+    cat: CategoryScoreDetail,
+    icon: React.ReactNode
+  ) => {
+    const percentage = Math.round((cat.score / cat.max_score) * 100);
+    const isElevated = cat.score > 0;
+    return (
+      <div
+        key={cat.category_name}
+        className={`p-4 rounded-xl border transition-all ${
+          isElevated
+            ? 'bg-amber-50/30 border-amber-200 shadow-subtle'
+            : 'bg-surface-subtle border-surface-border'
+        }`}
+      >
+        <div className="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-200/60">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 rounded-lg bg-white border border-slate-200 shadow-subtle flex-shrink-0">
+              {icon}
+            </div>
+            <div>
+              <span className="text-xs font-bold text-navy-900 block leading-tight">
+                {cat.category_name}
+              </span>
+              <span className="text-[10px] text-slate-500 font-mono">
+                Weight: {cat.weight_percentage}%
+              </span>
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <span
+              className={`text-base font-black font-mono ${
+                isElevated ? 'text-amber-800' : 'text-emerald-700'
+              }`}
+            >
+              {cat.score}
+            </span>
+            <span className="text-xs font-mono text-slate-400">/{cat.max_score}</span>
+          </div>
+        </div>
+
+        {/* Mini progress bar */}
+        <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden my-2.5">
+          <div
+            className={`h-full transition-all duration-300 ${
+              isElevated
+                ? cat.score >= cat.max_score * 0.7
+                  ? 'bg-red-500'
+                  : 'bg-amber-500'
+                : 'bg-emerald-500'
+            }`}
+            style={{ width: `${Math.max(percentage, isElevated ? 6 : 0)}%` }}
+          />
+        </div>
+
+        <p className="text-xs text-slate-600 leading-relaxed">
+          {cat.explanation}
+        </p>
+
+        {cat.is_dampened && (
+          <div className="mt-2.5 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+            Corroboration Dampening Applied
+          </div>
+        )}
+
+        {cat.rules_triggered && cat.rules_triggered.length > 0 && (
+          <div className="mt-2.5 flex flex-wrap gap-1">
+            {cat.rules_triggered.map((rule) => (
+              <span
+                key={rule}
+                className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white text-slate-700 border border-slate-200 shadow-subtle"
+              >
+                {rule}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -158,11 +271,24 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
             </div>
           </div>
 
-          <div className="text-left md:text-right text-xs">
-            <span className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-              Assessment Code
-            </span>
-            <span className="font-mono font-semibold text-navy-900">{fusion.overall_category}</span>
+          <div className="flex items-center gap-3.5 self-start md:self-center">
+            {fusion.overall_risk_score !== undefined && (
+              <div className={`px-4 py-2 rounded-xl border text-center ${catConfig.scoreBoxClass}`}>
+                <div className="text-[10px] font-mono uppercase tracking-wider font-semibold opacity-75">
+                  Risk Score
+                </div>
+                <div className="text-2xl font-black font-mono tracking-tight leading-none mt-0.5">
+                  {fusion.overall_risk_score}
+                  <span className="text-xs font-normal opacity-60">/100</span>
+                </div>
+              </div>
+            )}
+            <div className="text-left md:text-right text-xs">
+              <span className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+                Assessment Code
+              </span>
+              <span className="font-mono font-semibold text-navy-900">{fusion.overall_category}</span>
+            </div>
           </div>
         </div>
 
@@ -177,6 +303,107 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
       </div>
 
       <div className="p-5 sm:p-6 space-y-6">
+        {/* Numerical Phishing Risk Score & Five-Category Breakdown Section */}
+        <div className="rounded-xl border border-surface-border bg-white p-5 shadow-subtle space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-border">
+            <div>
+              <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                <ShieldCheck className="w-5 h-5 text-brand-600" />
+                <h4 className="text-base font-bold text-navy-900 tracking-tight">
+                  Evidence-Based Phishing Risk Score
+                </h4>
+                {fusion.evidence_completeness && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-700 border border-brand-200">
+                    {fusion.evidence_completeness.replace('_', ' ')}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Transparent 0–100 heuristic risk index based on 5 weighted evidence categories. Not a statistical probability or guarantee of safety.
+              </p>
+            </div>
+
+            {/* Score Highlight Metric */}
+            <div className="flex items-center space-x-3 self-start sm:self-center">
+              <div className="text-right">
+                <div className="text-xs text-slate-500 font-medium">Risk Tier</div>
+                <div className="text-xs font-semibold text-navy-900">
+                  {catConfig.scoreBandLabel}
+                </div>
+              </div>
+              <div className={`px-4 py-2 rounded-xl border font-mono font-black text-2xl sm:text-3xl ${catConfig.scoreBadgeClass}`}>
+                {fusion.overall_risk_score !== undefined ? `${fusion.overall_risk_score}` : 'N/A'}
+                <span className="text-xs font-normal text-slate-500 font-sans">/100</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Overall Score Progress Bar with 3 Risk Bands */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-[11px] font-medium text-slate-500">
+              <span className="text-emerald-700 font-semibold">Low Risk (0–25)</span>
+              <span className="text-amber-700 font-semibold">Review Recommended (26–74)</span>
+              <span className="text-red-700 font-semibold">High Risk Present (75–100)</span>
+            </div>
+            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200 relative">
+              {/* Reference markers for 25 and 75 */}
+              <div className="absolute left-[25%] top-0 bottom-0 w-0.5 bg-slate-300 z-10" />
+              <div className="absolute left-[75%] top-0 bottom-0 w-0.5 bg-slate-300 z-10" />
+              <div
+                className={`h-full transition-all duration-500 ${catConfig.progressClass}`}
+                style={{ width: `${Math.min(100, Math.max(0, fusion.overall_risk_score ?? 0))}%` }}
+              />
+            </div>
+            {fusion.evidence_completeness_detail && (
+              <p className="text-[11px] text-slate-500 italic mt-1">
+                Evidence coverage: {fusion.evidence_completeness_detail}
+              </p>
+            )}
+          </div>
+
+          {/* 5-Category Breakdown Grid */}
+          {fusion.risk_score_breakdown && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <h5 className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-brand-600" />
+                  <span>Five-Category Risk Contributions (Max 100 Points)</span>
+                </h5>
+                <span className="text-xs font-mono text-slate-500 font-medium">
+                  Total Points Accrued: <strong className="text-navy-900">{fusion.overall_risk_score ?? 0}</strong>/100
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {/* 1. Sender Identity & Authentication (25 pts) */}
+                {renderCategoryCard(
+                  fusion.risk_score_breakdown.sender_auth,
+                  <Lock className="w-4 h-4 text-brand-600" />
+                )}
+                {/* 2. URL & Link Intelligence (25 pts) */}
+                {renderCategoryCard(
+                  fusion.risk_score_breakdown.url_intelligence,
+                  <Globe className="w-4 h-4 text-blue-600" />
+                )}
+                {/* 3. Content & Language Analysis (20 pts) */}
+                {renderCategoryCard(
+                  fusion.risk_score_breakdown.content_language,
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                )}
+                {/* 4. DistilBERT ML Model Analysis (20 pts) */}
+                {renderCategoryCard(
+                  fusion.risk_score_breakdown.ml_model,
+                  <Cpu className="w-4 h-4 text-purple-600" />
+                )}
+                {/* 5. Header, IP & Infrastructure (10 pts) */}
+                {renderCategoryCard(
+                  fusion.risk_score_breakdown.header_ip,
+                  <Network className="w-4 h-4 text-indigo-600" />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Synthesized Forensic Reasoning */}
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
@@ -246,15 +473,6 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
                 <strong className="text-navy-900">Interpretation: </strong>
                 {model.interpretation}
               </div>
-
-              {/* Calibration Caveat Banner */}
-              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start space-x-2.5">
-                <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-semibold text-amber-800">Model Limitation &amp; Caveat: </span>
-                  <span className="text-amber-800 leading-relaxed">{model.caveat}</span>
-                </div>
-              </div>
             </div>
           ) : (
             <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs space-y-2">
@@ -282,19 +500,19 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
             Key Findings &amp; Forensic Indicators
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-            {/* 1. Suspicious / Contributing Factors */}
+            {/* 1. Suspicious / Risk Indicators */}
             <div className="rounded-xl border border-red-200 bg-red-50/20 p-4">
               <h5 className="text-xs font-semibold uppercase tracking-wider text-red-800 mb-2.5 flex items-center gap-1.5">
                 <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-                <span>Suspicious Indicators ({fusion.contributing_factors.length})</span>
+                <span>Risk Indicators ({negativeFactors.length})</span>
               </h5>
-              {fusion.contributing_factors.length === 0 ? (
+              {negativeFactors.length === 0 ? (
                 <p className="text-xs text-slate-500 italic">
                   No explicit suspicious factors flagged.
                 </p>
               ) : (
                 <ul className="space-y-2 text-xs text-navy-900">
-                  {fusion.contributing_factors.map((factor, idx) => (
+                  {negativeFactors.map((factor, idx) => (
                     <li key={idx} className="flex items-start space-x-2">
                       <span className="text-red-500 font-bold mt-0.5">•</span>
                       <span className="leading-relaxed">{factor}</span>
@@ -304,11 +522,11 @@ export const EvidenceFusionCard: FC<EvidenceFusionCardProps> = ({ fusion }) => {
               )}
             </div>
 
-            {/* 2. Reassuring Indicators */}
+            {/* 2. Reassuring / Mitigating Indicators */}
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/20 p-4">
               <h5 className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-2.5 flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                <span>Reassuring Indicators</span>
+                <span>Mitigating Observations ({reassuringFactors.length})</span>
               </h5>
               {reassuringFactors.length === 0 ? (
                 <p className="text-xs text-slate-500 italic">

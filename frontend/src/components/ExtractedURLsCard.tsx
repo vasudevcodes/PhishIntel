@@ -219,9 +219,19 @@ export const ExtractedURLsCard: FC<ExtractedURLsCardProps> = ({ urls, urlAnalysi
                   </div>
                 </div>
 
-                {/* URL String */}
-                <div className="font-mono text-xs text-slate-800 break-all bg-surface-subtle p-3 rounded-lg border border-surface-border select-all">
-                  {item.url}
+                {/* URL String and Anchor Text */}
+                <div className="space-y-1.5">
+                  {item.anchor_text && item.anchor_text.trim() !== item.url.trim() && (
+                    <div className="text-xs text-slate-600 flex items-center space-x-1.5">
+                      <span className="text-slate-400 font-medium text-[11px]">Anchor Text:</span>
+                      <span className="font-medium text-navy-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                        &ldquo;{item.anchor_text}&rdquo;
+                      </span>
+                    </div>
+                  )}
+                  <div className="font-mono text-xs text-slate-800 break-all bg-surface-subtle p-3 rounded-lg border border-surface-border select-all">
+                    {item.url}
+                  </div>
                 </div>
 
                 {/* Heuristic Findings / Observations */}

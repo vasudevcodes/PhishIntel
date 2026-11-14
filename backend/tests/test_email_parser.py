@@ -5,8 +5,10 @@ Validates RFC 5322 parsing against 8 synthetic fixtures.
 
 import hashlib
 from pathlib import Path
+from unittest.mock import patch
 import pytest
 
+from app.schemas.email import AttachmentInfo, EmailBodyInfo, EmailHeaderInfo
 from app.services.email_parser import parse_email_message
 from app.services.ip_extractor import classify_ip_address, extract_ip_candidates_from_received_headers
 import ipaddress
@@ -245,3 +247,44 @@ def test_ip_classification_helper():
     assert classify_ip_address(ipaddress.ip_address("1.1.1.1")) == "Public"
     assert classify_ip_address(ipaddress.ip_address("93.184.216.34")) == "Public"
     assert classify_ip_address(ipaddress.ip_address("2607:f8b0:4005:805::200e")) == "Public"
+
+
+def test_evidence_fusion_integration_receives_headers_body_and_attachments():
+    """
+    Regression test: Verifies that parse_email_message forwards header_info,
+    body_info, and attachments to fuse_evidence.
+    """
+    import app.services.email_parser as parser_module
+
+    content = read_fixture("04_attachments.eml")
+
+    with patch.object(parser_module, "fuse_evidence", wraps=parser_module.fuse_evidence) as mock_fuse:
+        result = parser_module.parse_email_message(content, "04_attachments.eml")
+
+        assert mock_fuse.called, "fuse_evidence was not invoked by parse_email_message"
+        call_kwargs = mock_fuse.call_args.kwargs
+
+        # 1. header_info forwarded and populated
+        assert "header_info" in call_kwargs, "header_info missing from fuse_evidence call"
+        header_arg = call_kwargs["header_info"]
+        assert isinstance(header_arg, EmailHeaderInfo)
+        assert header_arg.from_header == "billing@vendor-services.com"
+        assert header_arg.subject == "Invoice INV-2026-9081 Attached"
+
+        # 2. body_info forwarded and populated
+        assert "body_info" in call_kwargs, "body_info missing from fuse_evidence call"
+        body_arg = call_kwargs["body_info"]
+        assert isinstance(body_arg, EmailBodyInfo)
+        assert body_arg.plain_text is not None
+        assert "INV-2026-9081" in body_arg.plain_text
+
+        # 3. attachments forwarded and populated
+        assert "attachments" in call_kwargs, "attachments missing from fuse_evidence call"
+        att_arg = call_kwargs["attachments"]
+        assert isinstance(att_arg, list)
+        assert len(att_arg) == 2
+        assert any(att.filename == "invoice_october.pdf" for att in att_arg)
+        assert any(att.filename == "payment_instructions.txt" for att in att_arg)
+
+        # 4. Result integrity
+        assert result.evidence_fusion is not None

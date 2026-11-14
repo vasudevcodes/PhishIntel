@@ -43,7 +43,7 @@
       },
       "highest_risk_category": "INFO",
       "url_results": [],
-      "analyzed_at": "2026-10-26T10:24:25.405449+00:00"
+      "analyzed_at": "2026-11-10T18:03:33.060367+00:00"
     },
     "authentication_analysis": {
       "status": "NO_EVIDENCE",
@@ -78,15 +78,24 @@
       },
       "headers_inspected": [],
       "authserv_ids": [],
+      "boundary_authserv_id": null,
+      "boundary_authserv_trust": "MISSING",
+      "is_boundary_trusted": false,
       "has_conflicts": false,
       "warnings": [],
-      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. Authenticity of these headers depends on the recipient mail gateway trust boundary."
+      "provenance_status": "MISSING_AUTHENTICATION",
+      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. For offline .eml uploads, all authentication assertions are REPORTED \u2014 their origin cannot be independently established. An authserv-id matching a known mail gateway (e.g. mx.google.com) does NOT prove the header originated from that gateway; the string can be trivially forged by any sender."
     },
     "ip_intelligence": {
       "total_candidates": 0,
       "candidates": [],
       "origin_candidate": null,
-      "origin_assessment": "No IP candidates found in email Received headers.",
+      "origin_assessment": "Originating IP is UNAVAILABLE. No IP candidates found in email Received headers.",
+      "origin_attribution_status": "UNAVAILABLE",
+      "sender_identity_status": "Not established",
+      "provider_infrastructure_match": null,
+      "candidate_ip_classification": "Unavailable",
+      "is_candidate_routable": null,
       "public_count": 0,
       "private_count": 0,
       "other_count": 0,
@@ -97,7 +106,65 @@
       "disclaimer": "IP analysis is strictly offline and deterministic. Geolocation reflects approximate network registration or egress routing, NOT a person's physical location. Received transit headers prior to the receiving boundary MTA may be forged or manipulated by untrusted relays."
     },
     "evidence_fusion": {
-      "overall_category": "INSUFFICIENT_EVIDENCE",
+      "overall_category": "LOW_RISK_INDICATORS",
+      "overall_risk_score": 0,
+      "risk_score_breakdown": {
+        "sender_auth": {
+          "category_name": "Sender Identity & Authentication",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on sender-domain alignment, Reply-To consistency, and reported authentication.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "url_intelligence": {
+          "category_name": "URL & Link Intelligence",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on structural URL features, anchor text alignment, and domain reputations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "content_language": {
+          "category_name": "Content & Language Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned based on attachment metadata, urgency threats, and credential solicitations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "ml_model": {
+          "category_name": "DistilBERT NLP Model Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned (Raw text heuristic score: 0.054).",
+          "rules_triggered": [
+            "RULE_MODEL_DAMPENED_UNITS"
+          ],
+          "is_dampened": false
+        },
+        "header_ip": {
+          "category_name": "Header, IP & Infrastructure Intelligence",
+          "score": 0,
+          "max_score": 10,
+          "weight_percentage": 10,
+          "explanation": "0/10 points assigned based on transit routing hops, MTA syntax, and infrastructure provenance.",
+          "rules_triggered": [],
+          "is_dampened": false
+        }
+      },
+      "evidence_completeness": "PARTIAL_COVERAGE",
+      "evidence_completeness_detail": "Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file).",
+      "positive_evidence": [
+        "No external hyperlinks detected in email body.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
+        "DistilBERT NLP text heuristic score is low or dampened (0.054)."
+      ],
+      "negative_evidence": [],
       "model_evidence": {
         "status": "EVALUATED",
         "uncalibrated_score": 0.05379091575741768,
@@ -122,6 +189,8 @@
         "has_valid_authentication": false,
         "has_explicit_failure": false,
         "correlated_failure_noted": false,
+        "boundary_authserv_trust": "MISSING",
+        "is_boundary_trusted": false,
         "explanation": "No authentication results were available in the message headers.",
         "trust_limitation": "Authentication results reflect downstream MTA assertions (RFC 8601/RFC 7208). PASS does not guarantee benign intent (e.g. attacker-owned domain), and FAIL does not guarantee malice (e.g. forwarding breakage)."
       },
@@ -133,14 +202,18 @@
         "explanation": "No Received headers containing IP addresses were detected.",
         "provenance_limitation": "Received headers prior to the recipient boundary MTA can be spoofed or omitted by untrusted relays. IP egress reflects network routing, not a person's physical location. Private IPs, proxies, and cloud hosts are not proof of maliciousness."
       },
-      "contributing_factors": [],
+      "contributing_factors": [
+        "No external hyperlinks detected in email body.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
+        "DistilBERT NLP text heuristic score is low or dampened (0.054)."
+      ],
       "inconclusive_or_missing_factors": [
         "No extracted URLs present to evaluate for structural link risks.",
         "No SPF, DKIM, or DMARC authentication headers were recorded by receiving MTAs.",
         "No candidate IP addresses were available from Received headers.",
         "DistilBERT model indicated low textual similarity to phishing lures (uncalibrated score: 0.054)."
       ],
-      "reasoning": "Insufficient evidence available to assign an elevated risk category. Key forensic indicators (such as URLs, authentication headers, or public transit IPs) were absent or neutral.",
+      "reasoning": "Overall Phishing Risk Score: 0/100 (LOW RISK INDICATORS). Evidence completeness: PARTIAL_COVERAGE \u2014 Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file). Category contributions: Sender/Auth 0/25, URLs 0/25, Content/Language 0/20, ML Model 0/20, Header/IP 0/10. Mitigating observations: No external hyperlinks detected in email body.; No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.; DistilBERT NLP text heuristic score is low or dampened (0.054).. Model evidence: DistilBERT NLP uncalibrated phishing score 0.054. Model predicts benign text (label 0) with low phishing similarity (0.054). Authentication evidence: SPF=NOT_PRESENT, DKIM=NOT_PRESENT, DMARC=NOT_PRESENT.",
       "disclaimer": "This assessment is an investigation support aid combining local forensic observations and model scores. It does NOT emit a calibrated probability or a definitive phishing verdict. Findings must be validated by security analysts."
     },
     "model_inference": {
@@ -151,7 +224,7 @@
     },
     "parsing_status": "success",
     "warnings": [],
-    "parsed_at": "2026-10-26T10:24:28.094547+00:00"
+    "parsed_at": "2026-11-10T18:03:33.253061+00:00"
   },
   "02_html_only.eml": {
     "filename": "02_html_only.eml",
@@ -239,6 +312,7 @@
             "has_path": true,
             "path_length": 18,
             "has_query": false,
+            "query_length": 0,
             "query_param_count": 0,
             "has_fragment": false
           },
@@ -261,7 +335,7 @@
           "risk_summary": "Informational / Standard: Conforms to expected web URL structures with no elevated heuristic risk indicators."
         }
       ],
-      "analyzed_at": "2026-10-26T10:24:28.110514+00:00"
+      "analyzed_at": "2026-11-10T18:03:33.260612+00:00"
     },
     "authentication_analysis": {
       "status": "NO_EVIDENCE",
@@ -296,15 +370,24 @@
       },
       "headers_inspected": [],
       "authserv_ids": [],
+      "boundary_authserv_id": null,
+      "boundary_authserv_trust": "MISSING",
+      "is_boundary_trusted": false,
       "has_conflicts": false,
       "warnings": [],
-      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. Authenticity of these headers depends on the recipient mail gateway trust boundary."
+      "provenance_status": "MISSING_AUTHENTICATION",
+      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. For offline .eml uploads, all authentication assertions are REPORTED \u2014 their origin cannot be independently established. An authserv-id matching a known mail gateway (e.g. mx.google.com) does NOT prove the header originated from that gateway; the string can be trivially forged by any sender."
     },
     "ip_intelligence": {
       "total_candidates": 0,
       "candidates": [],
       "origin_candidate": null,
-      "origin_assessment": "No IP candidates found in email Received headers.",
+      "origin_assessment": "Originating IP is UNAVAILABLE. No IP candidates found in email Received headers.",
+      "origin_attribution_status": "UNAVAILABLE",
+      "sender_identity_status": "Not established",
+      "provider_infrastructure_match": null,
+      "candidate_ip_classification": "Unavailable",
+      "is_candidate_routable": null,
       "public_count": 0,
       "private_count": 0,
       "other_count": 0,
@@ -315,7 +398,66 @@
       "disclaimer": "IP analysis is strictly offline and deterministic. Geolocation reflects approximate network registration or egress routing, NOT a person's physical location. Received transit headers prior to the receiving boundary MTA may be forged or manipulated by untrusted relays."
     },
     "evidence_fusion": {
-      "overall_category": "REVIEW_RECOMMENDED",
+      "overall_category": "LOW_RISK_INDICATORS",
+      "overall_risk_score": 5,
+      "risk_score_breakdown": {
+        "sender_auth": {
+          "category_name": "Sender Identity & Authentication",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on sender-domain alignment, Reply-To consistency, and reported authentication.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "url_intelligence": {
+          "category_name": "URL & Link Intelligence",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on structural URL features, anchor text alignment, and domain reputations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "content_language": {
+          "category_name": "Content & Language Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned based on attachment metadata, urgency threats, and credential solicitations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "ml_model": {
+          "category_name": "DistilBERT NLP Model Analysis",
+          "score": 5,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "5/20 points assigned (Raw text heuristic score: 0.995; corroboration dampening applied due to clean technical proof).",
+          "rules_triggered": [
+            "RULE_MODEL_DAMPENED_UNITS"
+          ],
+          "is_dampened": true
+        },
+        "header_ip": {
+          "category_name": "Header, IP & Infrastructure Intelligence",
+          "score": 0,
+          "max_score": 10,
+          "weight_percentage": 10,
+          "explanation": "0/10 points assigned based on transit routing hops, MTA syntax, and infrastructure provenance.",
+          "rules_triggered": [],
+          "is_dampened": false
+        }
+      },
+      "evidence_completeness": "PARTIAL_COVERAGE",
+      "evidence_completeness_detail": "Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file).",
+      "positive_evidence": [
+        "All 1 extracted link(s) across 1 unique destination(s) conform to benign structural patterns.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected."
+      ],
+      "negative_evidence": [
+        "DistilBERT NLP text similarity heuristic: 0.995 (Dampened to 5 pts due to clean, aligned technical evidence)."
+      ],
       "model_evidence": {
         "status": "EVALUATED",
         "uncalibrated_score": 0.9952887296676636,
@@ -340,6 +482,8 @@
         "has_valid_authentication": false,
         "has_explicit_failure": false,
         "correlated_failure_noted": false,
+        "boundary_authserv_trust": "MISSING",
+        "is_boundary_trusted": false,
         "explanation": "No authentication results were available in the message headers.",
         "trust_limitation": "Authentication results reflect downstream MTA assertions (RFC 8601/RFC 7208). PASS does not guarantee benign intent (e.g. attacker-owned domain), and FAIL does not guarantee malice (e.g. forwarding breakage)."
       },
@@ -352,6 +496,8 @@
         "provenance_limitation": "Received headers prior to the recipient boundary MTA can be spoofed or omitted by untrusted relays. IP egress reflects network routing, not a person's physical location. Private IPs, proxies, and cloud hosts are not proof of maliciousness."
       },
       "contributing_factors": [
+        "All 1 extracted link(s) across 1 unique destination(s) conform to benign structural patterns.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
         "DistilBERT model indicated elevated textual similarity to phishing lures (uncalibrated score: 0.995)."
       ],
       "inconclusive_or_missing_factors": [
@@ -359,7 +505,7 @@
         "No SPF, DKIM, or DMARC authentication headers were recorded by receiving MTAs.",
         "No candidate IP addresses were available from Received headers."
       ],
-      "reasoning": "Review recommended: DistilBERT text model flagged elevated phishing similarity, but no corroborating structural URL or authentication failure evidence was observed. Because model score is uncalibrated, analyst review is recommended.",
+      "reasoning": "Overall Phishing Risk Score: 5/100 (LOW RISK INDICATORS). Evidence completeness: PARTIAL_COVERAGE \u2014 Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file). Category contributions: Sender/Auth 0/25, URLs 0/25, Content/Language 0/20, ML Model 5/20, Header/IP 0/10. Risk indicators: DistilBERT NLP text similarity heuristic: 0.995 (Dampened to 5 pts due to clean, aligned technical evidence).. Mitigating observations: All 1 extracted link(s) across 1 unique destination(s) conform to benign structural patterns.; No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.. Model evidence: DistilBERT NLP uncalibrated phishing score 0.995. Model predicts phishing (label 1) with uncalibrated phishing score 0.995. Authentication evidence: SPF=NOT_PRESENT, DKIM=NOT_PRESENT, DMARC=NOT_PRESENT.",
       "disclaimer": "This assessment is an investigation support aid combining local forensic observations and model scores. It does NOT emit a calibrated probability or a definitive phishing verdict. Findings must be validated by security analysts."
     },
     "model_inference": {
@@ -370,7 +516,7 @@
     },
     "parsing_status": "success",
     "warnings": [],
-    "parsed_at": "2026-10-26T10:24:28.126879+00:00"
+    "parsed_at": "2026-11-10T18:03:33.268475+00:00"
   },
   "03_multipart_plain_html.eml": {
     "filename": "03_multipart_plain_html.eml",
@@ -466,6 +612,7 @@
             "has_path": true,
             "path_length": 21,
             "has_query": false,
+            "query_length": 0,
             "query_param_count": 0,
             "has_fragment": false
           },
@@ -522,6 +669,7 @@
             "has_path": true,
             "path_length": 12,
             "has_query": true,
+            "query_length": 9,
             "query_param_count": 1,
             "has_fragment": false
           },
@@ -550,7 +698,7 @@
           "risk_summary": "Informational / Standard: Conforms to expected web URL structures with no elevated heuristic risk indicators."
         }
       ],
-      "analyzed_at": "2026-10-26T10:24:28.140953+00:00"
+      "analyzed_at": "2026-11-10T18:03:33.276360+00:00"
     },
     "authentication_analysis": {
       "status": "NO_EVIDENCE",
@@ -585,15 +733,24 @@
       },
       "headers_inspected": [],
       "authserv_ids": [],
+      "boundary_authserv_id": null,
+      "boundary_authserv_trust": "MISSING",
+      "is_boundary_trusted": false,
       "has_conflicts": false,
       "warnings": [],
-      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. Authenticity of these headers depends on the recipient mail gateway trust boundary."
+      "provenance_status": "MISSING_AUTHENTICATION",
+      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. For offline .eml uploads, all authentication assertions are REPORTED \u2014 their origin cannot be independently established. An authserv-id matching a known mail gateway (e.g. mx.google.com) does NOT prove the header originated from that gateway; the string can be trivially forged by any sender."
     },
     "ip_intelligence": {
       "total_candidates": 0,
       "candidates": [],
       "origin_candidate": null,
-      "origin_assessment": "No IP candidates found in email Received headers.",
+      "origin_assessment": "Originating IP is UNAVAILABLE. No IP candidates found in email Received headers.",
+      "origin_attribution_status": "UNAVAILABLE",
+      "sender_identity_status": "Not established",
+      "provider_infrastructure_match": null,
+      "candidate_ip_classification": "Unavailable",
+      "is_candidate_routable": null,
       "public_count": 0,
       "private_count": 0,
       "other_count": 0,
@@ -604,7 +761,66 @@
       "disclaimer": "IP analysis is strictly offline and deterministic. Geolocation reflects approximate network registration or egress routing, NOT a person's physical location. Received transit headers prior to the receiving boundary MTA may be forged or manipulated by untrusted relays."
     },
     "evidence_fusion": {
-      "overall_category": "REVIEW_RECOMMENDED",
+      "overall_category": "LOW_RISK_INDICATORS",
+      "overall_risk_score": 4,
+      "risk_score_breakdown": {
+        "sender_auth": {
+          "category_name": "Sender Identity & Authentication",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on sender-domain alignment, Reply-To consistency, and reported authentication.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "url_intelligence": {
+          "category_name": "URL & Link Intelligence",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on structural URL features, anchor text alignment, and domain reputations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "content_language": {
+          "category_name": "Content & Language Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned based on attachment metadata, urgency threats, and credential solicitations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "ml_model": {
+          "category_name": "DistilBERT NLP Model Analysis",
+          "score": 4,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "4/20 points assigned (Raw text heuristic score: 0.889; corroboration dampening applied due to clean technical proof).",
+          "rules_triggered": [
+            "RULE_MODEL_DAMPENED_UNITS"
+          ],
+          "is_dampened": true
+        },
+        "header_ip": {
+          "category_name": "Header, IP & Infrastructure Intelligence",
+          "score": 0,
+          "max_score": 10,
+          "weight_percentage": 10,
+          "explanation": "0/10 points assigned based on transit routing hops, MTA syntax, and infrastructure provenance.",
+          "rules_triggered": [],
+          "is_dampened": false
+        }
+      },
+      "evidence_completeness": "PARTIAL_COVERAGE",
+      "evidence_completeness_detail": "Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file).",
+      "positive_evidence": [
+        "All 2 extracted link(s) across 2 unique destination(s) conform to benign structural patterns.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected."
+      ],
+      "negative_evidence": [
+        "DistilBERT NLP text similarity heuristic: 0.889 (Dampened to 4 pts due to clean, aligned technical evidence)."
+      ],
       "model_evidence": {
         "status": "EVALUATED",
         "uncalibrated_score": 0.8890237808227539,
@@ -629,6 +845,8 @@
         "has_valid_authentication": false,
         "has_explicit_failure": false,
         "correlated_failure_noted": false,
+        "boundary_authserv_trust": "MISSING",
+        "is_boundary_trusted": false,
         "explanation": "No authentication results were available in the message headers.",
         "trust_limitation": "Authentication results reflect downstream MTA assertions (RFC 8601/RFC 7208). PASS does not guarantee benign intent (e.g. attacker-owned domain), and FAIL does not guarantee malice (e.g. forwarding breakage)."
       },
@@ -641,6 +859,8 @@
         "provenance_limitation": "Received headers prior to the recipient boundary MTA can be spoofed or omitted by untrusted relays. IP egress reflects network routing, not a person's physical location. Private IPs, proxies, and cloud hosts are not proof of maliciousness."
       },
       "contributing_factors": [
+        "All 2 extracted link(s) across 2 unique destination(s) conform to benign structural patterns.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
         "DistilBERT model indicated elevated textual similarity to phishing lures (uncalibrated score: 0.889)."
       ],
       "inconclusive_or_missing_factors": [
@@ -648,7 +868,7 @@
         "No SPF, DKIM, or DMARC authentication headers were recorded by receiving MTAs.",
         "No candidate IP addresses were available from Received headers."
       ],
-      "reasoning": "Review recommended: DistilBERT text model flagged elevated phishing similarity, but no corroborating structural URL or authentication failure evidence was observed. Because model score is uncalibrated, analyst review is recommended.",
+      "reasoning": "Overall Phishing Risk Score: 4/100 (LOW RISK INDICATORS). Evidence completeness: PARTIAL_COVERAGE \u2014 Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file). Category contributions: Sender/Auth 0/25, URLs 0/25, Content/Language 0/20, ML Model 4/20, Header/IP 0/10. Risk indicators: DistilBERT NLP text similarity heuristic: 0.889 (Dampened to 4 pts due to clean, aligned technical evidence).. Mitigating observations: All 2 extracted link(s) across 2 unique destination(s) conform to benign structural patterns.; No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.. Model evidence: DistilBERT NLP uncalibrated phishing score 0.889. Model predicts phishing (label 1) with uncalibrated phishing score 0.889. Authentication evidence: SPF=NOT_PRESENT, DKIM=NOT_PRESENT, DMARC=NOT_PRESENT.",
       "disclaimer": "This assessment is an investigation support aid combining local forensic observations and model scores. It does NOT emit a calibrated probability or a definitive phishing verdict. Findings must be validated by security analysts."
     },
     "model_inference": {
@@ -659,7 +879,7 @@
     },
     "parsing_status": "success",
     "warnings": [],
-    "parsed_at": "2026-10-26T10:24:28.151997+00:00"
+    "parsed_at": "2026-11-10T18:03:33.286751+00:00"
   },
   "04_attachments.eml": {
     "filename": "04_attachments.eml",
@@ -718,7 +938,7 @@
       },
       "highest_risk_category": "INFO",
       "url_results": [],
-      "analyzed_at": "2026-10-26T10:24:28.165222+00:00"
+      "analyzed_at": "2026-11-10T18:03:33.294699+00:00"
     },
     "authentication_analysis": {
       "status": "NO_EVIDENCE",
@@ -753,15 +973,24 @@
       },
       "headers_inspected": [],
       "authserv_ids": [],
+      "boundary_authserv_id": null,
+      "boundary_authserv_trust": "MISSING",
+      "is_boundary_trusted": false,
       "has_conflicts": false,
       "warnings": [],
-      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. Authenticity of these headers depends on the recipient mail gateway trust boundary."
+      "provenance_status": "MISSING_AUTHENTICATION",
+      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. For offline .eml uploads, all authentication assertions are REPORTED \u2014 their origin cannot be independently established. An authserv-id matching a known mail gateway (e.g. mx.google.com) does NOT prove the header originated from that gateway; the string can be trivially forged by any sender."
     },
     "ip_intelligence": {
       "total_candidates": 0,
       "candidates": [],
       "origin_candidate": null,
-      "origin_assessment": "No IP candidates found in email Received headers.",
+      "origin_assessment": "Originating IP is UNAVAILABLE. No IP candidates found in email Received headers.",
+      "origin_attribution_status": "UNAVAILABLE",
+      "sender_identity_status": "Not established",
+      "provider_infrastructure_match": null,
+      "candidate_ip_classification": "Unavailable",
+      "is_candidate_routable": null,
       "public_count": 0,
       "private_count": 0,
       "other_count": 0,
@@ -772,7 +1001,67 @@
       "disclaimer": "IP analysis is strictly offline and deterministic. Geolocation reflects approximate network registration or egress routing, NOT a person's physical location. Received transit headers prior to the receiving boundary MTA may be forged or manipulated by untrusted relays."
     },
     "evidence_fusion": {
-      "overall_category": "REVIEW_RECOMMENDED",
+      "overall_category": "LOW_RISK_INDICATORS",
+      "overall_risk_score": 5,
+      "risk_score_breakdown": {
+        "sender_auth": {
+          "category_name": "Sender Identity & Authentication",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on sender-domain alignment, Reply-To consistency, and reported authentication.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "url_intelligence": {
+          "category_name": "URL & Link Intelligence",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on structural URL features, anchor text alignment, and domain reputations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "content_language": {
+          "category_name": "Content & Language Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned based on attachment metadata, urgency threats, and credential solicitations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "ml_model": {
+          "category_name": "DistilBERT NLP Model Analysis",
+          "score": 5,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "5/20 points assigned (Raw text heuristic score: 0.997; corroboration dampening applied due to clean technical proof).",
+          "rules_triggered": [
+            "RULE_MODEL_DAMPENED_UNITS"
+          ],
+          "is_dampened": true
+        },
+        "header_ip": {
+          "category_name": "Header, IP & Infrastructure Intelligence",
+          "score": 0,
+          "max_score": 10,
+          "weight_percentage": 10,
+          "explanation": "0/10 points assigned based on transit routing hops, MTA syntax, and infrastructure provenance.",
+          "rules_triggered": [],
+          "is_dampened": false
+        }
+      },
+      "evidence_completeness": "PARTIAL_COVERAGE",
+      "evidence_completeness_detail": "Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file).",
+      "positive_evidence": [
+        "No external hyperlinks detected in email body.",
+        "2 attachment(s) inspected; all filenames exhibit standard document/data extensions.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected."
+      ],
+      "negative_evidence": [
+        "DistilBERT NLP text similarity heuristic: 0.997 (Dampened to 5 pts due to clean, aligned technical evidence)."
+      ],
       "model_evidence": {
         "status": "EVALUATED",
         "uncalibrated_score": 0.9968292117118835,
@@ -797,6 +1086,8 @@
         "has_valid_authentication": false,
         "has_explicit_failure": false,
         "correlated_failure_noted": false,
+        "boundary_authserv_trust": "MISSING",
+        "is_boundary_trusted": false,
         "explanation": "No authentication results were available in the message headers.",
         "trust_limitation": "Authentication results reflect downstream MTA assertions (RFC 8601/RFC 7208). PASS does not guarantee benign intent (e.g. attacker-owned domain), and FAIL does not guarantee malice (e.g. forwarding breakage)."
       },
@@ -809,6 +1100,9 @@
         "provenance_limitation": "Received headers prior to the recipient boundary MTA can be spoofed or omitted by untrusted relays. IP egress reflects network routing, not a person's physical location. Private IPs, proxies, and cloud hosts are not proof of maliciousness."
       },
       "contributing_factors": [
+        "No external hyperlinks detected in email body.",
+        "2 attachment(s) inspected; all filenames exhibit standard document/data extensions.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
         "DistilBERT model indicated elevated textual similarity to phishing lures (uncalibrated score: 0.997)."
       ],
       "inconclusive_or_missing_factors": [
@@ -816,7 +1110,7 @@
         "No SPF, DKIM, or DMARC authentication headers were recorded by receiving MTAs.",
         "No candidate IP addresses were available from Received headers."
       ],
-      "reasoning": "Review recommended: DistilBERT text model flagged elevated phishing similarity, but no corroborating structural URL or authentication failure evidence was observed. Because model score is uncalibrated, analyst review is recommended.",
+      "reasoning": "Overall Phishing Risk Score: 5/100 (LOW RISK INDICATORS). Evidence completeness: PARTIAL_COVERAGE \u2014 Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file). Category contributions: Sender/Auth 0/25, URLs 0/25, Content/Language 0/20, ML Model 5/20, Header/IP 0/10. Risk indicators: DistilBERT NLP text similarity heuristic: 0.997 (Dampened to 5 pts due to clean, aligned technical evidence).. Mitigating observations: No external hyperlinks detected in email body.; 2 attachment(s) inspected; all filenames exhibit standard document/data extensions.; No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.. Model evidence: DistilBERT NLP uncalibrated phishing score 0.997. Model predicts phishing (label 1) with uncalibrated phishing score 0.997. Authentication evidence: SPF=NOT_PRESENT, DKIM=NOT_PRESENT, DMARC=NOT_PRESENT.",
       "disclaimer": "This assessment is an investigation support aid combining local forensic observations and model scores. It does NOT emit a calibrated probability or a definitive phishing verdict. Findings must be validated by security analysts."
     },
     "model_inference": {
@@ -827,7 +1121,7 @@
     },
     "parsing_status": "success",
     "warnings": [],
-    "parsed_at": "2026-10-26T10:24:28.177044+00:00"
+    "parsed_at": "2026-11-10T18:03:33.302929+00:00"
   },
   "05_multiple_urls.eml": {
     "filename": "05_multiple_urls.eml",
@@ -933,6 +1227,7 @@
             "has_path": true,
             "path_length": 6,
             "has_query": true,
+            "query_length": 15,
             "query_param_count": 1,
             "has_fragment": false
           },
@@ -1001,6 +1296,7 @@
             "has_path": true,
             "path_length": 4,
             "has_query": false,
+            "query_length": 0,
             "query_param_count": 0,
             "has_fragment": false
           },
@@ -1063,6 +1359,7 @@
             "has_path": true,
             "path_length": 8,
             "has_query": false,
+            "query_length": 0,
             "query_param_count": 0,
             "has_fragment": false
           },
@@ -1119,6 +1416,7 @@
             "has_path": true,
             "path_length": 4,
             "has_query": false,
+            "query_length": 0,
             "query_param_count": 0,
             "has_fragment": false
           },
@@ -1141,7 +1439,7 @@
           "risk_summary": "Informational / Standard: Conforms to expected web URL structures with no elevated heuristic risk indicators."
         }
       ],
-      "analyzed_at": "2026-10-26T10:24:28.189159+00:00"
+      "analyzed_at": "2026-11-10T18:03:33.310852+00:00"
     },
     "authentication_analysis": {
       "status": "NO_EVIDENCE",
@@ -1176,15 +1474,24 @@
       },
       "headers_inspected": [],
       "authserv_ids": [],
+      "boundary_authserv_id": null,
+      "boundary_authserv_trust": "MISSING",
+      "is_boundary_trusted": false,
       "has_conflicts": false,
       "warnings": [],
-      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. Authenticity of these headers depends on the recipient mail gateway trust boundary."
+      "provenance_status": "MISSING_AUTHENTICATION",
+      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. For offline .eml uploads, all authentication assertions are REPORTED \u2014 their origin cannot be independently established. An authserv-id matching a known mail gateway (e.g. mx.google.com) does NOT prove the header originated from that gateway; the string can be trivially forged by any sender."
     },
     "ip_intelligence": {
       "total_candidates": 0,
       "candidates": [],
       "origin_candidate": null,
-      "origin_assessment": "No IP candidates found in email Received headers.",
+      "origin_assessment": "Originating IP is UNAVAILABLE. No IP candidates found in email Received headers.",
+      "origin_attribution_status": "UNAVAILABLE",
+      "sender_identity_status": "Not established",
+      "provider_infrastructure_match": null,
+      "candidate_ip_classification": "Unavailable",
+      "is_candidate_routable": null,
       "public_count": 0,
       "private_count": 0,
       "other_count": 0,
@@ -1195,7 +1502,66 @@
       "disclaimer": "IP analysis is strictly offline and deterministic. Geolocation reflects approximate network registration or egress routing, NOT a person's physical location. Received transit headers prior to the receiving boundary MTA may be forged or manipulated by untrusted relays."
     },
     "evidence_fusion": {
-      "overall_category": "REVIEW_RECOMMENDED",
+      "overall_category": "LOW_RISK_INDICATORS",
+      "overall_risk_score": 5,
+      "risk_score_breakdown": {
+        "sender_auth": {
+          "category_name": "Sender Identity & Authentication",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on sender-domain alignment, Reply-To consistency, and reported authentication.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "url_intelligence": {
+          "category_name": "URL & Link Intelligence",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on structural URL features, anchor text alignment, and domain reputations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "content_language": {
+          "category_name": "Content & Language Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned based on attachment metadata, urgency threats, and credential solicitations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "ml_model": {
+          "category_name": "DistilBERT NLP Model Analysis",
+          "score": 5,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "5/20 points assigned (Raw text heuristic score: 0.997; corroboration dampening applied due to clean technical proof).",
+          "rules_triggered": [
+            "RULE_MODEL_DAMPENED_UNITS"
+          ],
+          "is_dampened": true
+        },
+        "header_ip": {
+          "category_name": "Header, IP & Infrastructure Intelligence",
+          "score": 0,
+          "max_score": 10,
+          "weight_percentage": 10,
+          "explanation": "0/10 points assigned based on transit routing hops, MTA syntax, and infrastructure provenance.",
+          "rules_triggered": [],
+          "is_dampened": false
+        }
+      },
+      "evidence_completeness": "PARTIAL_COVERAGE",
+      "evidence_completeness_detail": "Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file).",
+      "positive_evidence": [
+        "All 4 extracted link(s) across 4 unique destination(s) conform to benign structural patterns.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected."
+      ],
+      "negative_evidence": [
+        "DistilBERT NLP text similarity heuristic: 0.997 (Dampened to 5 pts due to clean, aligned technical evidence)."
+      ],
       "model_evidence": {
         "status": "EVALUATED",
         "uncalibrated_score": 0.9973968267440796,
@@ -1220,6 +1586,8 @@
         "has_valid_authentication": false,
         "has_explicit_failure": false,
         "correlated_failure_noted": false,
+        "boundary_authserv_trust": "MISSING",
+        "is_boundary_trusted": false,
         "explanation": "No authentication results were available in the message headers.",
         "trust_limitation": "Authentication results reflect downstream MTA assertions (RFC 8601/RFC 7208). PASS does not guarantee benign intent (e.g. attacker-owned domain), and FAIL does not guarantee malice (e.g. forwarding breakage)."
       },
@@ -1232,6 +1600,8 @@
         "provenance_limitation": "Received headers prior to the recipient boundary MTA can be spoofed or omitted by untrusted relays. IP egress reflects network routing, not a person's physical location. Private IPs, proxies, and cloud hosts are not proof of maliciousness."
       },
       "contributing_factors": [
+        "All 4 extracted link(s) across 4 unique destination(s) conform to benign structural patterns.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
         "DistilBERT model indicated elevated textual similarity to phishing lures (uncalibrated score: 0.997)."
       ],
       "inconclusive_or_missing_factors": [
@@ -1239,7 +1609,7 @@
         "No SPF, DKIM, or DMARC authentication headers were recorded by receiving MTAs.",
         "No candidate IP addresses were available from Received headers."
       ],
-      "reasoning": "Review recommended: DistilBERT text model flagged elevated phishing similarity, but no corroborating structural URL or authentication failure evidence was observed. Because model score is uncalibrated, analyst review is recommended.",
+      "reasoning": "Overall Phishing Risk Score: 5/100 (LOW RISK INDICATORS). Evidence completeness: PARTIAL_COVERAGE \u2014 Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file). Category contributions: Sender/Auth 0/25, URLs 0/25, Content/Language 0/20, ML Model 5/20, Header/IP 0/10. Risk indicators: DistilBERT NLP text similarity heuristic: 0.997 (Dampened to 5 pts due to clean, aligned technical evidence).. Mitigating observations: All 4 extracted link(s) across 4 unique destination(s) conform to benign structural patterns.; No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.. Model evidence: DistilBERT NLP uncalibrated phishing score 0.997. Model predicts phishing (label 1) with uncalibrated phishing score 0.997. Authentication evidence: SPF=NOT_PRESENT, DKIM=NOT_PRESENT, DMARC=NOT_PRESENT.",
       "disclaimer": "This assessment is an investigation support aid combining local forensic observations and model scores. It does NOT emit a calibrated probability or a definitive phishing verdict. Findings must be validated by security analysts."
     },
     "model_inference": {
@@ -1250,7 +1620,7 @@
     },
     "parsing_status": "success",
     "warnings": [],
-    "parsed_at": "2026-10-26T10:24:28.205538+00:00"
+    "parsed_at": "2026-11-10T18:03:33.318563+00:00"
   },
   "06_multiple_received_hops.eml": {
     "filename": "06_multiple_received_hops.eml",
@@ -1341,7 +1711,7 @@
       },
       "highest_risk_category": "INFO",
       "url_results": [],
-      "analyzed_at": "2026-10-26T10:24:28.216614+00:00"
+      "analyzed_at": "2026-11-10T18:03:33.326993+00:00"
     },
     "authentication_analysis": {
       "status": "EVALUATED",
@@ -1355,11 +1725,13 @@
             "source_header": "Authentication-Results",
             "header_index": 0,
             "authserv_id": "mx.google.com",
+            "authserv_trust": "REPORTED",
             "properties": {
               "smtp.mailfrom": "sender@partner.com"
             },
             "reason": "google.com: domain of sender@partner.com designates 198.51.100.25 as permitted sender",
-            "raw_snippet": "spf=pass (google.com: domain of sender@partner.com designates 198.51.100.25 as permitted sender) smtp.mailfrom=sender@partner.com"
+            "raw_snippet": "spf=pass (google.com: domain of sender@partner.com designates 198.51.100.25 as permitted sender) smtp.mailfrom=sender@partner.com",
+            "is_boundary_mta": true
           },
           {
             "method": "spf",
@@ -1368,11 +1740,13 @@
             "source_header": "Received-SPF",
             "header_index": 0,
             "authserv_id": null,
+            "authserv_trust": "MISSING",
             "properties": {
               "client-ip": "198.51.100.25"
             },
             "reason": "google.com: domain of sender@partner.com designates 198.51.100.25 as permitted sender",
-            "raw_snippet": "pass (google.com: domain of sender@partner.com designates 198.51.100.25 as permitted sender) client-ip=198.51.100.25;"
+            "raw_snippet": "pass (google.com: domain of sender@partner.com designates 198.51.100.25 as permitted sender) client-ip=198.51.100.25;",
+            "is_boundary_mta": true
           }
         ],
         "domain": "sender@partner.com",
@@ -1390,12 +1764,14 @@
             "source_header": "Authentication-Results",
             "header_index": 0,
             "authserv_id": "mx.google.com",
+            "authserv_trust": "REPORTED",
             "properties": {
               "header.i": "@partner.com",
               "header.s": "202601"
             },
             "reason": null,
-            "raw_snippet": "dkim=pass header.i=@partner.com header.s=202601"
+            "raw_snippet": "dkim=pass header.i=@partner.com header.s=202601",
+            "is_boundary_mta": true
           }
         ],
         "has_dkim_signature_header": false,
@@ -1415,6 +1791,7 @@
             "source_header": "Authentication-Results",
             "header_index": 0,
             "authserv_id": "mx.google.com",
+            "authserv_trust": "REPORTED",
             "properties": {
               "header.from": "partner.com",
               "p": "REJECT",
@@ -1422,7 +1799,8 @@
               "dis": "NONE"
             },
             "reason": "p=REJECT sp=REJECT dis=NONE",
-            "raw_snippet": "dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=partner.com"
+            "raw_snippet": "dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=partner.com",
+            "is_boundary_mta": true
           }
         ],
         "policy": "REJECT",
@@ -1440,9 +1818,15 @@
       "authserv_ids": [
         "mx.google.com"
       ],
+      "boundary_authserv_id": "mx.google.com",
+      "boundary_authserv_trust": "REPORTED",
+      "is_boundary_trusted": false,
       "has_conflicts": false,
-      "warnings": [],
-      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. Authenticity of these headers depends on the recipient mail gateway trust boundary."
+      "warnings": [
+        "Outermost Authentication-Results header (index 0) specifies authserv-id 'mx.google.com', which matches a known mail gateway name. However, this is an offline .eml upload \u2014 the authserv-id string can be trivially forged. Authentication assertions are REPORTED (unverified), not independently established."
+      ],
+      "provenance_status": "REPORTED_AUTHENTICATION",
+      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. For offline .eml uploads, all authentication assertions are REPORTED \u2014 their origin cannot be independently established. An authserv-id matching a known mail gateway (e.g. mx.google.com) does NOT prove the header originated from that gateway; the string can be trivially forged by any sender."
     },
     "ip_intelligence": {
       "total_candidates": 5,
@@ -1456,8 +1840,12 @@
           "is_routable": false,
           "geolocation_status": "NOT_ROUTABLE",
           "geolocation": null,
-          "role_hint": "Recipient Ingress / Perimeter Gateway (Newest Hop)",
-          "explanation": "Documentation IPv4 address (Recipient Ingress / Perimeter Gateway (Newest Hop)). Non-routable IP; offline geolocation is not applicable."
+          "role_hint": "Likely Shared Provider Infrastructure (Google Mail / Workspace) (Recipient Ingress / Perimeter Gateway)",
+          "explanation": "Documentation IPv4 address (Likely Shared Provider Infrastructure (Google Mail / Workspace) (Recipient Ingress / Perimeter Gateway)). Non-routable IP; offline geolocation is not applicable.",
+          "provider_indicator": "Unverified Google hostname pattern",
+          "provider_match_category": "Empirical Hostname Pattern",
+          "provider_confidence": "Unverified (Hostname Pattern Only)",
+          "provider_source_url": "UNKNOWN (Empirical header trace pattern; unverified by authoritative API)"
         },
         {
           "ip": "10.240.0.5",
@@ -1469,7 +1857,11 @@
           "geolocation_status": "NOT_ROUTABLE",
           "geolocation": null,
           "role_hint": "Intermediate Transit Relay (Hop 1)",
-          "explanation": "Private IPv4 address (Intermediate Transit Relay (Hop 1)). Non-routable IP; offline geolocation is not applicable."
+          "explanation": "Private IPv4 address (Intermediate Transit Relay (Hop 1)). Non-routable IP; offline geolocation is not applicable.",
+          "provider_indicator": null,
+          "provider_match_category": null,
+          "provider_confidence": null,
+          "provider_source_url": null
         },
         {
           "ip": "127.0.0.1",
@@ -1481,7 +1873,11 @@
           "geolocation_status": "NOT_ROUTABLE",
           "geolocation": null,
           "role_hint": "Intermediate Transit Relay (Hop 2)",
-          "explanation": "Loopback IPv4 address (Intermediate Transit Relay (Hop 2)). Non-routable IP; offline geolocation is not applicable."
+          "explanation": "Loopback IPv4 address (Intermediate Transit Relay (Hop 2)). Non-routable IP; offline geolocation is not applicable.",
+          "provider_indicator": null,
+          "provider_match_category": null,
+          "provider_confidence": null,
+          "provider_source_url": null
         },
         {
           "ip": "2001:db8:85a3::8a2e:370:7334",
@@ -1493,7 +1889,11 @@
           "geolocation_status": "NOT_ROUTABLE",
           "geolocation": null,
           "role_hint": "Apparent Earliest Relay / Origin Candidate (Oldest Hop)",
-          "explanation": "Documentation IPv6 address (Apparent Earliest Relay / Origin Candidate (Oldest Hop)). Non-routable IP; offline geolocation is not applicable."
+          "explanation": "Documentation IPv6 address (Apparent Earliest Relay / Origin Candidate (Oldest Hop)). Non-routable IP; offline geolocation is not applicable.",
+          "provider_indicator": null,
+          "provider_match_category": null,
+          "provider_confidence": null,
+          "provider_source_url": null
         },
         {
           "ip": "2001:db8:85a3::",
@@ -1505,7 +1905,11 @@
           "geolocation_status": "NOT_ROUTABLE",
           "geolocation": null,
           "role_hint": "Apparent Earliest Relay / Origin Candidate (Oldest Hop)",
-          "explanation": "Documentation IPv6 address (Apparent Earliest Relay / Origin Candidate (Oldest Hop)). Non-routable IP; offline geolocation is not applicable."
+          "explanation": "Documentation IPv6 address (Apparent Earliest Relay / Origin Candidate (Oldest Hop)). Non-routable IP; offline geolocation is not applicable.",
+          "provider_indicator": null,
+          "provider_match_category": null,
+          "provider_confidence": null,
+          "provider_source_url": null
         }
       ],
       "origin_candidate": {
@@ -1518,20 +1922,93 @@
         "geolocation_status": "NOT_ROUTABLE",
         "geolocation": null,
         "role_hint": "Apparent Earliest Relay / Origin Candidate (Oldest Hop)",
-        "explanation": "Documentation IPv6 address (Apparent Earliest Relay / Origin Candidate (Oldest Hop)). Non-routable IP; offline geolocation is not applicable."
+        "explanation": "Documentation IPv6 address (Apparent Earliest Relay / Origin Candidate (Oldest Hop)). Non-routable IP; offline geolocation is not applicable.",
+        "provider_indicator": null,
+        "provider_match_category": null,
+        "provider_confidence": null,
+        "provider_source_url": null
       },
-      "origin_assessment": "Earliest recorded hop (Hop 3) is classified as Documentation (2001:db8:85a3::8a2e:370:7334).",
+      "origin_assessment": "Earliest recorded hop (Hop 3) is classified as Documentation (2001:db8:85a3::8a2e:370:7334). Note: Pre-boundary Received headers may be forged or manipulated by untrusted upstream relays.",
+      "origin_attribution_status": "UNAVAILABLE",
+      "sender_identity_status": "Not established (Documentation)",
+      "provider_infrastructure_match": null,
+      "candidate_ip_classification": "Documentation",
+      "is_candidate_routable": false,
       "public_count": 0,
       "private_count": 1,
       "other_count": 4,
       "database_available": false,
       "warnings": [
+        "Candidate 2001:db8:85a3::8a2e:370:7334 was extracted from an upstream Received header (Hop 3) prior to receiving boundary; provenance cannot be independently verified.",
         "Transit path consists entirely of private or non-routable IP addresses."
       ],
       "disclaimer": "IP analysis is strictly offline and deterministic. Geolocation reflects approximate network registration or egress routing, NOT a person's physical location. Received transit headers prior to the receiving boundary MTA may be forged or manipulated by untrusted relays."
     },
     "evidence_fusion": {
-      "overall_category": "REVIEW_RECOMMENDED",
+      "overall_category": "LOW_RISK_INDICATORS",
+      "overall_risk_score": 9,
+      "risk_score_breakdown": {
+        "sender_auth": {
+          "category_name": "Sender Identity & Authentication",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on sender-domain alignment, Reply-To consistency, and reported authentication.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "url_intelligence": {
+          "category_name": "URL & Link Intelligence",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on structural URL features, anchor text alignment, and domain reputations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "content_language": {
+          "category_name": "Content & Language Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned based on attachment metadata, urgency threats, and credential solicitations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "ml_model": {
+          "category_name": "DistilBERT NLP Model Analysis",
+          "score": 5,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "5/20 points assigned (Raw text heuristic score: 0.988; corroboration dampening applied due to clean technical proof).",
+          "rules_triggered": [
+            "RULE_MODEL_DAMPENED_UNITS"
+          ],
+          "is_dampened": true
+        },
+        "header_ip": {
+          "category_name": "Header, IP & Infrastructure Intelligence",
+          "score": 4,
+          "max_score": 10,
+          "weight_percentage": 10,
+          "explanation": "4/10 points assigned based on transit routing hops, MTA syntax, and infrastructure provenance.",
+          "rules_triggered": [
+            "RULE_NON_ROUTABLE_TRANSIT"
+          ],
+          "is_dampened": false
+        }
+      },
+      "evidence_completeness": "FULL_COVERAGE",
+      "evidence_completeness_detail": "Comprehensive evidence available across headers, message body, reported authentication, and transit routing.",
+      "positive_evidence": [
+        "Receiver-reported domain authentication passed (SPF, DKIM, DMARC) as recorded by receiving MTA headers (unverified offline provenance; cannot be independently verified).",
+        "No external hyperlinks detected in email body.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected."
+      ],
+      "negative_evidence": [
+        "DistilBERT NLP text similarity heuristic: 0.988 (Dampened to 5 pts due to clean, aligned technical evidence).",
+        "Transit chain consists entirely of private or non-routable IP addresses."
+      ],
       "model_evidence": {
         "status": "EVALUATED",
         "uncalibrated_score": 0.9877687096595764,
@@ -1553,10 +2030,12 @@
         "dkim_status": "PASS",
         "dmarc_status": "PASS",
         "has_conflicts": false,
-        "has_valid_authentication": true,
+        "has_valid_authentication": false,
         "has_explicit_failure": false,
         "correlated_failure_noted": false,
-        "explanation": "Authentication evaluation: SPF=PASS, DKIM=PASS, DMARC=PASS. Conflicting headers: False. Correlated failures accounted for: False.",
+        "boundary_authserv_trust": "REPORTED",
+        "is_boundary_trusted": false,
+        "explanation": "Authentication evaluation: SPF=PASS, DKIM=PASS, DMARC=PASS. Provenance: REPORTED_AUTHENTICATION. Conflicting headers: False. Correlated failures accounted for: False. Boundary MTA trusted: False (REPORTED).",
         "trust_limitation": "Authentication results reflect downstream MTA assertions (RFC 8601/RFC 7208). PASS does not guarantee benign intent (e.g. attacker-owned domain), and FAIL does not guarantee malice (e.g. forwarding breakage)."
       },
       "ip_evidence": {
@@ -1568,14 +2047,18 @@
         "provenance_limitation": "Received headers prior to the recipient boundary MTA can be spoofed or omitted by untrusted relays. IP egress reflects network routing, not a person's physical location. Private IPs, proxies, and cloud hosts are not proof of maliciousness."
       },
       "contributing_factors": [
+        "Receiver-reported domain authentication passed (SPF, DKIM, DMARC) as recorded by receiving MTA headers (unverified offline provenance; cannot be independently verified).",
+        "No external hyperlinks detected in email body.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
+        "Authentication results claim 'mx.google.com' as the recording MTA, but this is an offline .eml upload \u2014 the authserv-id string cannot be independently verified as genuine. Authentication assertions are REPORTED (unverified provenance).",
         "DistilBERT model indicated elevated textual similarity to phishing lures (uncalibrated score: 0.988)."
       ],
       "inconclusive_or_missing_factors": [
         "No extracted URLs present to evaluate for structural link risks.",
-        "Legitimate domain authentication confirmed (SPF=PASS, DKIM=PASS, DMARC=PASS). Note: Valid auth does not prove benign intent.",
+        "Receiver-reported domain authentication passed (SPF=PASS, DKIM=PASS, DMARC=PASS) via reported MTA (mx.google.com). Provenance: REPORTED_AUTHENTICATION. Note: Reported authentication reflects MTA header assertions (RFC 8601) \u2014 these cannot be independently verified in an offline context and do not guarantee benign intent.",
         "Apparent origin relay is classified as non-routable Documentation (2001:db8:85a3::8a2e:370:7334)."
       ],
-      "reasoning": "Review recommended: DistilBERT text model flagged elevated phishing similarity, but no corroborating structural URL or authentication failure evidence was observed. Because model score is uncalibrated, analyst review is recommended.",
+      "reasoning": "Overall Phishing Risk Score: 9/100 (LOW RISK INDICATORS). Evidence completeness: FULL_COVERAGE \u2014 Comprehensive evidence available across headers, message body, reported authentication, and transit routing. Category contributions: Sender/Auth 0/25, URLs 0/25, Content/Language 0/20, ML Model 5/20, Header/IP 4/10. Risk indicators: DistilBERT NLP text similarity heuristic: 0.988 (Dampened to 5 pts due to clean, aligned technical evidence).; Transit chain consists entirely of private or non-routable IP addresses.. Mitigating observations: Receiver-reported domain authentication passed (SPF, DKIM, DMARC) as recorded by receiving MTA headers (unverified offline provenance; cannot be independently verified).; No external hyperlinks detected in email body.; No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.. Model evidence: DistilBERT NLP uncalibrated phishing score 0.988. Model predicts phishing (label 1) with uncalibrated phishing score 0.988. Authentication evidence: SPF=PASS, DKIM=PASS, DMARC=PASS.",
       "disclaimer": "This assessment is an investigation support aid combining local forensic observations and model scores. It does NOT emit a calibrated probability or a definitive phishing verdict. Findings must be validated by security analysts."
     },
     "model_inference": {
@@ -1586,7 +2069,7 @@
     },
     "parsing_status": "success",
     "warnings": [],
-    "parsed_at": "2026-10-26T10:24:28.227255+00:00"
+    "parsed_at": "2026-11-10T18:03:33.335804+00:00"
   },
   "07_malformed.eml": {
     "filename": "07_malformed.eml",
@@ -1679,6 +2162,7 @@
             "has_path": true,
             "path_length": 5,
             "has_query": false,
+            "query_length": 0,
             "query_param_count": 0,
             "has_fragment": false
           },
@@ -1701,7 +2185,7 @@
           "risk_summary": "Low heuristic risk: Displays minor structural variations (e.g. unencrypted HTTP, long URL length, redirect parameters, or multiple subdomains)."
         }
       ],
-      "analyzed_at": "2026-10-26T10:24:28.238520+00:00"
+      "analyzed_at": "2026-11-10T18:03:33.342850+00:00"
     },
     "authentication_analysis": {
       "status": "NO_EVIDENCE",
@@ -1736,15 +2220,24 @@
       },
       "headers_inspected": [],
       "authserv_ids": [],
+      "boundary_authserv_id": null,
+      "boundary_authserv_trust": "MISSING",
+      "is_boundary_trusted": false,
       "has_conflicts": false,
       "warnings": [],
-      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. Authenticity of these headers depends on the recipient mail gateway trust boundary."
+      "provenance_status": "MISSING_AUTHENTICATION",
+      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. For offline .eml uploads, all authentication assertions are REPORTED \u2014 their origin cannot be independently established. An authserv-id matching a known mail gateway (e.g. mx.google.com) does NOT prove the header originated from that gateway; the string can be trivially forged by any sender."
     },
     "ip_intelligence": {
       "total_candidates": 0,
       "candidates": [],
       "origin_candidate": null,
-      "origin_assessment": "No IP candidates found in email Received headers.",
+      "origin_assessment": "Originating IP is UNAVAILABLE. No IP candidates found in email Received headers.",
+      "origin_attribution_status": "UNAVAILABLE",
+      "sender_identity_status": "Not established",
+      "provider_infrastructure_match": null,
+      "candidate_ip_classification": "Unavailable",
+      "is_candidate_routable": null,
       "public_count": 0,
       "private_count": 0,
       "other_count": 0,
@@ -1755,7 +2248,66 @@
       "disclaimer": "IP analysis is strictly offline and deterministic. Geolocation reflects approximate network registration or egress routing, NOT a person's physical location. Received transit headers prior to the receiving boundary MTA may be forged or manipulated by untrusted relays."
     },
     "evidence_fusion": {
-      "overall_category": "INSUFFICIENT_EVIDENCE",
+      "overall_category": "LOW_RISK_INDICATORS",
+      "overall_risk_score": 0,
+      "risk_score_breakdown": {
+        "sender_auth": {
+          "category_name": "Sender Identity & Authentication",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on sender-domain alignment, Reply-To consistency, and reported authentication.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "url_intelligence": {
+          "category_name": "URL & Link Intelligence",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on structural URL features, anchor text alignment, and domain reputations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "content_language": {
+          "category_name": "Content & Language Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned based on attachment metadata, urgency threats, and credential solicitations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "ml_model": {
+          "category_name": "DistilBERT NLP Model Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned (Raw text heuristic score: 0.002).",
+          "rules_triggered": [
+            "RULE_MODEL_DAMPENED_UNITS"
+          ],
+          "is_dampened": false
+        },
+        "header_ip": {
+          "category_name": "Header, IP & Infrastructure Intelligence",
+          "score": 0,
+          "max_score": 10,
+          "weight_percentage": 10,
+          "explanation": "0/10 points assigned based on transit routing hops, MTA syntax, and infrastructure provenance.",
+          "rules_triggered": [],
+          "is_dampened": false
+        }
+      },
+      "evidence_completeness": "PARTIAL_COVERAGE",
+      "evidence_completeness_detail": "Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file).",
+      "positive_evidence": [
+        "All 1 extracted link(s) across 1 unique destination(s) conform to benign structural patterns.",
+        "1 attachment(s) inspected; all filenames exhibit standard document/data extensions.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
+        "DistilBERT NLP text heuristic score is low or dampened (0.002)."
+      ],
+      "negative_evidence": [],
       "model_evidence": {
         "status": "EVALUATED",
         "uncalibrated_score": 0.0022675429936498404,
@@ -1780,6 +2332,8 @@
         "has_valid_authentication": false,
         "has_explicit_failure": false,
         "correlated_failure_noted": false,
+        "boundary_authserv_trust": "MISSING",
+        "is_boundary_trusted": false,
         "explanation": "No authentication results were available in the message headers.",
         "trust_limitation": "Authentication results reflect downstream MTA assertions (RFC 8601/RFC 7208). PASS does not guarantee benign intent (e.g. attacker-owned domain), and FAIL does not guarantee malice (e.g. forwarding breakage)."
       },
@@ -1791,14 +2345,19 @@
         "explanation": "No Received headers containing IP addresses were detected.",
         "provenance_limitation": "Received headers prior to the recipient boundary MTA can be spoofed or omitted by untrusted relays. IP egress reflects network routing, not a person's physical location. Private IPs, proxies, and cloud hosts are not proof of maliciousness."
       },
-      "contributing_factors": [],
+      "contributing_factors": [
+        "All 1 extracted link(s) across 1 unique destination(s) conform to benign structural patterns.",
+        "1 attachment(s) inspected; all filenames exhibit standard document/data extensions.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
+        "DistilBERT NLP text heuristic score is low or dampened (0.002)."
+      ],
       "inconclusive_or_missing_factors": [
         "Extracted 1 URL(s) across 1 domain(s) with negligible heuristic risk.",
         "No SPF, DKIM, or DMARC authentication headers were recorded by receiving MTAs.",
         "No candidate IP addresses were available from Received headers.",
         "DistilBERT model indicated low textual similarity to phishing lures (uncalibrated score: 0.002)."
       ],
-      "reasoning": "Insufficient evidence available to assign an elevated risk category. Key forensic indicators (such as URLs, authentication headers, or public transit IPs) were absent or neutral.",
+      "reasoning": "Overall Phishing Risk Score: 0/100 (LOW RISK INDICATORS). Evidence completeness: PARTIAL_COVERAGE \u2014 Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file). Category contributions: Sender/Auth 0/25, URLs 0/25, Content/Language 0/20, ML Model 0/20, Header/IP 0/10. Mitigating observations: All 1 extracted link(s) across 1 unique destination(s) conform to benign structural patterns.; 1 attachment(s) inspected; all filenames exhibit standard document/data extensions.; No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.. Model evidence: DistilBERT NLP uncalibrated phishing score 0.002. Model predicts benign text (label 0) with low phishing similarity (0.002). Authentication evidence: SPF=NOT_PRESENT, DKIM=NOT_PRESENT, DMARC=NOT_PRESENT.",
       "disclaimer": "This assessment is an investigation support aid combining local forensic observations and model scores. It does NOT emit a calibrated probability or a definitive phishing verdict. Findings must be validated by security analysts."
     },
     "model_inference": {
@@ -1809,7 +2368,7 @@
     },
     "parsing_status": "success",
     "warnings": [],
-    "parsed_at": "2026-10-26T10:24:28.248423+00:00"
+    "parsed_at": "2026-11-10T18:03:33.350910+00:00"
   },
   "08_missing_optional_headers.eml": {
     "filename": "08_missing_optional_headers.eml",
@@ -1853,7 +2412,7 @@
       },
       "highest_risk_category": "INFO",
       "url_results": [],
-      "analyzed_at": "2026-10-26T10:24:28.256083+00:00"
+      "analyzed_at": "2026-11-10T18:03:33.355771+00:00"
     },
     "authentication_analysis": {
       "status": "NO_EVIDENCE",
@@ -1888,15 +2447,24 @@
       },
       "headers_inspected": [],
       "authserv_ids": [],
+      "boundary_authserv_id": null,
+      "boundary_authserv_trust": "MISSING",
+      "is_boundary_trusted": false,
       "has_conflicts": false,
       "warnings": [],
-      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. Authenticity of these headers depends on the recipient mail gateway trust boundary."
+      "provenance_status": "MISSING_AUTHENTICATION",
+      "disclaimer": "Authentication evidence reflects downstream MTA header assertions (RFC 8601/RFC 7208). Phase 5A does not perform live DNS queries, fetch public keys, or cryptographically verify DKIM signatures. For offline .eml uploads, all authentication assertions are REPORTED \u2014 their origin cannot be independently established. An authserv-id matching a known mail gateway (e.g. mx.google.com) does NOT prove the header originated from that gateway; the string can be trivially forged by any sender."
     },
     "ip_intelligence": {
       "total_candidates": 0,
       "candidates": [],
       "origin_candidate": null,
-      "origin_assessment": "No IP candidates found in email Received headers.",
+      "origin_assessment": "Originating IP is UNAVAILABLE. No IP candidates found in email Received headers.",
+      "origin_attribution_status": "UNAVAILABLE",
+      "sender_identity_status": "Not established",
+      "provider_infrastructure_match": null,
+      "candidate_ip_classification": "Unavailable",
+      "is_candidate_routable": null,
       "public_count": 0,
       "private_count": 0,
       "other_count": 0,
@@ -1907,7 +2475,66 @@
       "disclaimer": "IP analysis is strictly offline and deterministic. Geolocation reflects approximate network registration or egress routing, NOT a person's physical location. Received transit headers prior to the receiving boundary MTA may be forged or manipulated by untrusted relays."
     },
     "evidence_fusion": {
-      "overall_category": "REVIEW_RECOMMENDED",
+      "overall_category": "LOW_RISK_INDICATORS",
+      "overall_risk_score": 4,
+      "risk_score_breakdown": {
+        "sender_auth": {
+          "category_name": "Sender Identity & Authentication",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on sender-domain alignment, Reply-To consistency, and reported authentication.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "url_intelligence": {
+          "category_name": "URL & Link Intelligence",
+          "score": 0,
+          "max_score": 25,
+          "weight_percentage": 25,
+          "explanation": "0/25 points assigned based on structural URL features, anchor text alignment, and domain reputations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "content_language": {
+          "category_name": "Content & Language Analysis",
+          "score": 0,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "0/20 points assigned based on attachment metadata, urgency threats, and credential solicitations.",
+          "rules_triggered": [],
+          "is_dampened": false
+        },
+        "ml_model": {
+          "category_name": "DistilBERT NLP Model Analysis",
+          "score": 4,
+          "max_score": 20,
+          "weight_percentage": 20,
+          "explanation": "4/20 points assigned (Raw text heuristic score: 0.859; corroboration dampening applied due to clean technical proof).",
+          "rules_triggered": [
+            "RULE_MODEL_DAMPENED_UNITS"
+          ],
+          "is_dampened": true
+        },
+        "header_ip": {
+          "category_name": "Header, IP & Infrastructure Intelligence",
+          "score": 0,
+          "max_score": 10,
+          "weight_percentage": 10,
+          "explanation": "0/10 points assigned based on transit routing hops, MTA syntax, and infrastructure provenance.",
+          "rules_triggered": [],
+          "is_dampened": false
+        }
+      },
+      "evidence_completeness": "PARTIAL_COVERAGE",
+      "evidence_completeness_detail": "Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file).",
+      "positive_evidence": [
+        "No external hyperlinks detected in email body.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected."
+      ],
+      "negative_evidence": [
+        "DistilBERT NLP text similarity heuristic: 0.859 (Dampened to 4 pts due to clean, aligned technical evidence)."
+      ],
       "model_evidence": {
         "status": "EVALUATED",
         "uncalibrated_score": 0.8588723540306091,
@@ -1932,6 +2559,8 @@
         "has_valid_authentication": false,
         "has_explicit_failure": false,
         "correlated_failure_noted": false,
+        "boundary_authserv_trust": "MISSING",
+        "is_boundary_trusted": false,
         "explanation": "No authentication results were available in the message headers.",
         "trust_limitation": "Authentication results reflect downstream MTA assertions (RFC 8601/RFC 7208). PASS does not guarantee benign intent (e.g. attacker-owned domain), and FAIL does not guarantee malice (e.g. forwarding breakage)."
       },
@@ -1944,6 +2573,8 @@
         "provenance_limitation": "Received headers prior to the recipient boundary MTA can be spoofed or omitted by untrusted relays. IP egress reflects network routing, not a person's physical location. Private IPs, proxies, and cloud hosts are not proof of maliciousness."
       },
       "contributing_factors": [
+        "No external hyperlinks detected in email body.",
+        "No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.",
         "DistilBERT model indicated elevated textual similarity to phishing lures (uncalibrated score: 0.859)."
       ],
       "inconclusive_or_missing_factors": [
@@ -1951,7 +2582,7 @@
         "No SPF, DKIM, or DMARC authentication headers were recorded by receiving MTAs.",
         "No candidate IP addresses were available from Received headers."
       ],
-      "reasoning": "Review recommended: DistilBERT text model flagged elevated phishing similarity, but no corroborating structural URL or authentication failure evidence was observed. Because model score is uncalibrated, analyst review is recommended.",
+      "reasoning": "Overall Phishing Risk Score: 4/100 (LOW RISK INDICATORS). Evidence completeness: PARTIAL_COVERAGE \u2014 Partial forensic evidence available (reported authentication headers and extractable transit hops absent from file). Category contributions: Sender/Auth 0/25, URLs 0/25, Content/Language 0/20, ML Model 4/20, Header/IP 0/10. Risk indicators: DistilBERT NLP text similarity heuristic: 0.859 (Dampened to 4 pts due to clean, aligned technical evidence).. Mitigating observations: No external hyperlinks detected in email body.; No coercive urgency threats, direct credential solicitations, or dangerous attachments detected.. Model evidence: DistilBERT NLP uncalibrated phishing score 0.859. Model predicts phishing (label 1) with uncalibrated phishing score 0.859. Authentication evidence: SPF=NOT_PRESENT, DKIM=NOT_PRESENT, DMARC=NOT_PRESENT.",
       "disclaimer": "This assessment is an investigation support aid combining local forensic observations and model scores. It does NOT emit a calibrated probability or a definitive phishing verdict. Findings must be validated by security analysts."
     },
     "model_inference": {
@@ -1962,6 +2593,6 @@
     },
     "parsing_status": "success",
     "warnings": [],
-    "parsed_at": "2026-10-26T10:24:28.265677+00:00"
+    "parsed_at": "2026-11-10T18:03:33.364691+00:00"
   }
 }

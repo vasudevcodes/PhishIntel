@@ -9,6 +9,7 @@ import email
 from email import policy
 from email.message import EmailMessage
 import hashlib
+import html
 import os
 import re
 from typing import List, Optional, Set, Tuple
@@ -84,36 +85,85 @@ def extract_urls(
     plain_text: Optional[str], html_content: Optional[str]
 ) -> List[ExtractedURL]:
     """
-    Extracts and deduplicates URLs from both plain-text content and HTML href attributes.
-    Preserves original URL values without performing any network lookups.
+    Extracts and deduplicates genuine navigable URLs from plain-text content and
+    HTML anchor <a> tags only.
+    Excludes non-hyperlink assets (image src, tracking pixels, css url(), stylesheets,
+    fonts, scripts, placeholder links href="#", javascript:, mailto:, tel:, xmlns namespaces,
+    and DTD DOCTYPEs).
+    Preserves original URL values, source provenance, and anchor text without performing
+    any network lookups.
     """
     url_sources: dict[str, Set[str]] = {}
+    url_anchors: dict[str, str] = {}
+    trailing_punct = ".,;:!?)>\"'}]"
 
     # 1. Plain text URLs
     if plain_text:
         for match in URL_REGEX.finditer(plain_text):
-            raw_url = match.group(0).rstrip(".,;:!?)>")
-            if raw_url:
+            raw_url = match.group(0).rstrip(trailing_punct)
+            raw_url = html.unescape(raw_url)
+            if raw_url and raw_url.lower().startswith(("http://", "https://")):
                 url_sources.setdefault(raw_url, set()).add("plain_text")
 
-    # 2. HTML href URLs and inner text URLs
+    # 2. HTML anchor hrefs and naked URLs in visible text
     if html_content:
         try:
             soup = BeautifulSoup(html_content, "html.parser")
+
+            # Extract genuine hyperlinks from <a> href attributes
             for a_tag in soup.find_all("a", href=True):
-                href = a_tag["href"].strip()
+                raw_href = a_tag.get("href")
+                if isinstance(raw_href, list):
+                    href = " ".join(raw_href).strip()
+                elif raw_href is not None:
+                    href = raw_href.strip()
+                else:
+                    continue
+
+                # Exclude placeholder links, in-page anchors, javascript, mailto, tel, data
+                if not href or href.startswith("#") or href.lower().startswith((
+                    "javascript:", "mailto:", "tel:", "data:", "about:", "sms:", "callto:"
+                )):
+                    continue
+
+                # Normalize protocol-relative URLs
+                if href.startswith("//"):
+                    href = "https:" + href
+
+                # Decode HTML entities (e.g. &amp; -> &)
+                href = html.unescape(href)
+
+                # Strip trailing punctuation
+                href = href.rstrip(trailing_punct)
+
                 if href.lower().startswith(("http://", "https://")):
                     url_sources.setdefault(href, set()).add("html_href")
+                    anchor_txt = a_tag.get_text(strip=True)
+                    if anchor_txt and href not in url_anchors:
+                        url_anchors[href] = anchor_txt
 
-            # Also inspect text content of HTML for naked URLs
-            for match in URL_REGEX.finditer(html_content):
-                raw_url = match.group(0).rstrip(".,;:!?)>")
-                if raw_url:
+            # Strip non-content and non-navigable elements before extracting visible text
+            for element in soup([
+                "script", "style", "meta", "noscript", "link", "img", "svg", "iframe", "audio", "video", "head"
+            ]):
+                element.decompose()
+
+            # Extract genuine naked URLs from visible text ONLY (never raw markup)
+            visible_text = soup.get_text(separator=" ", strip=True)
+            for match in URL_REGEX.finditer(visible_text):
+                raw_url = match.group(0).rstrip(trailing_punct)
+                raw_url = html.unescape(raw_url)
+                if raw_url and raw_url.lower().startswith(("http://", "https://")):
                     url_sources.setdefault(raw_url, set()).add("html_href")
+
         except Exception:
-            for match in URL_REGEX.finditer(html_content):
-                raw_url = match.group(0).rstrip(".,;:!?)>")
-                if raw_url:
+            # Fallback if BeautifulSoup parsing completely fails:
+            # Only search visible text after stripping HTML tags
+            clean_text = re.sub(r"<[^>]+>", " ", html_content)
+            for match in URL_REGEX.finditer(clean_text):
+                raw_url = match.group(0).rstrip(trailing_punct)
+                raw_url = html.unescape(raw_url)
+                if raw_url and raw_url.lower().startswith(("http://", "https://")):
                     url_sources.setdefault(raw_url, set()).add("html_href")
 
     # Construct deduplicated response list
@@ -140,6 +190,7 @@ def extract_urls(
                 scheme=scheme,
                 domain=domain,
                 source=source_label,
+                anchor_text=url_anchors.get(raw_url),
             )
         )
 
@@ -228,10 +279,15 @@ def parse_email_message(file_bytes: bytes, filename: str) -> EmailAnalysisRespon
                 # Process attachment metadata safely
                 try:
                     payload = part.get_payload(decode=True)
-                    if payload is None:
-                        payload = b""
-                    att_size = len(payload)
-                    att_hash = hashlib.sha256(payload).hexdigest() if payload else hashlib.sha256(b"").hexdigest()
+                    payload_bytes: bytes
+                    if isinstance(payload, bytes):
+                        payload_bytes = payload
+                    elif isinstance(payload, str):
+                        payload_bytes = payload.encode("utf-8", errors="replace")
+                    else:
+                        payload_bytes = b""
+                    att_size = len(payload_bytes)
+                    att_hash = hashlib.sha256(payload_bytes).hexdigest()
                     att_filename = sanitize_filename(part_filename or "unnamed_attachment")
                     att_type = part.get_content_type() or "application/octet-stream"
 
@@ -251,31 +307,49 @@ def parse_email_message(file_bytes: bytes, filename: str) -> EmailAnalysisRespon
             part_type = part.get_content_type()
             if part_type == "text/plain":
                 try:
-                    content = part.get_content()
-                    if isinstance(content, str):
-                        plain_text_parts.append(content)
-                    elif isinstance(content, bytes):
-                        plain_text_parts.append(content.decode("utf-8", errors="replace"))
+                    if isinstance(part, EmailMessage):
+                        content = part.get_content()
+                        if isinstance(content, str):
+                            plain_text_parts.append(content)
+                        elif isinstance(content, bytes):
+                            plain_text_parts.append(content.decode("utf-8", errors="replace"))
+                    else:
+                        raw = part.get_payload(decode=True)
+                        if isinstance(raw, bytes):
+                            plain_text_parts.append(raw.decode("utf-8", errors="replace"))
+                        elif isinstance(raw, str):
+                            plain_text_parts.append(raw)
                 except Exception:
                     try:
                         raw = part.get_payload(decode=True)
-                        if raw:
+                        if isinstance(raw, bytes):
                             plain_text_parts.append(raw.decode("utf-8", errors="replace"))
+                        elif isinstance(raw, str):
+                            plain_text_parts.append(raw)
                     except Exception as err:
                         warnings.append(f"Error decoding text/plain part: {str(err)}")
 
             elif part_type == "text/html":
                 try:
-                    content = part.get_content()
-                    if isinstance(content, str):
-                        html_parts.append(content)
-                    elif isinstance(content, bytes):
-                        html_parts.append(content.decode("utf-8", errors="replace"))
+                    if isinstance(part, EmailMessage):
+                        content = part.get_content()
+                        if isinstance(content, str):
+                            html_parts.append(content)
+                        elif isinstance(content, bytes):
+                            html_parts.append(content.decode("utf-8", errors="replace"))
+                    else:
+                        raw = part.get_payload(decode=True)
+                        if isinstance(raw, bytes):
+                            html_parts.append(raw.decode("utf-8", errors="replace"))
+                        elif isinstance(raw, str):
+                            html_parts.append(raw)
                 except Exception:
                     try:
                         raw = part.get_payload(decode=True)
-                        if raw:
+                        if isinstance(raw, bytes):
                             html_parts.append(raw.decode("utf-8", errors="replace"))
+                        elif isinstance(raw, str):
+                            html_parts.append(raw)
                     except Exception as err:
                         warnings.append(f"Error decoding text/html part: {str(err)}")
     else:
@@ -285,27 +359,48 @@ def parse_email_message(file_bytes: bytes, filename: str) -> EmailAnalysisRespon
 
         if part_filename:
             # Single attachment file message
-            payload = msg.get_payload(decode=True) or b""
+            payload = msg.get_payload(decode=True)
+            payload_bytes: bytes
+            if isinstance(payload, bytes):
+                payload_bytes = payload
+            elif isinstance(payload, str):
+                payload_bytes = payload.encode("utf-8", errors="replace")
+            else:
+                payload_bytes = b""
             attachments.append(
                 AttachmentInfo(
                     filename=sanitize_filename(part_filename),
                     content_type=main_type or "application/octet-stream",
-                    size_bytes=len(payload),
-                    sha256=hashlib.sha256(payload).hexdigest(),
+                    size_bytes=len(payload_bytes),
+                    sha256=hashlib.sha256(payload_bytes).hexdigest(),
                 )
             )
         else:
             try:
-                content = msg.get_content()
-                if isinstance(content, str):
-                    body_text = content
-                elif isinstance(content, bytes):
-                    body_text = content.decode("utf-8", errors="replace")
+                if isinstance(msg, EmailMessage):
+                    content = msg.get_content()
+                    if isinstance(content, str):
+                        body_text = content
+                    elif isinstance(content, bytes):
+                        body_text = content.decode("utf-8", errors="replace")
+                    else:
+                        body_text = str(content)
                 else:
-                    body_text = str(content)
+                    raw = msg.get_payload(decode=True)
+                    if isinstance(raw, bytes):
+                        body_text = raw.decode("utf-8", errors="replace")
+                    elif isinstance(raw, str):
+                        body_text = raw
+                    else:
+                        body_text = ""
             except Exception:
-                raw = msg.get_payload(decode=True) or b""
-                body_text = raw.decode("utf-8", errors="replace")
+                raw = msg.get_payload(decode=True)
+                if isinstance(raw, bytes):
+                    body_text = raw.decode("utf-8", errors="replace")
+                elif isinstance(raw, str):
+                    body_text = raw
+                else:
+                    body_text = ""
 
             if main_type == "text/html":
                 html_parts.append(body_text)
@@ -386,6 +481,9 @@ def parse_email_message(file_bytes: bytes, filename: str) -> EmailAnalysisRespon
             authentication_analysis=auth_analysis,
             ip_intelligence=ip_analysis,
             model_inference=model_result,
+            header_info=header_info,
+            body_info=body_info,
+            attachments=attachments,
         )
     except Exception as fuse_err:
         warnings.append(f"Evidence fusion analysis non-fatal warning: {str(fuse_err)}")

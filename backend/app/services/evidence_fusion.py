@@ -10,9 +10,11 @@ strictly refrains from outputting uncalibrated overall probabilities.
 
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
+from app.schemas.email import AttachmentInfo, EmailBodyInfo, EmailHeaderInfo
 from app.schemas.evidence_fusion import (
     AssessmentCategory,
     AuthEvidenceSummary,
+    EvidenceCompletenessStatus,
     EvidenceFusionResult,
     IPEvidenceSummary,
     ModelEvidenceInterpretation,
@@ -23,6 +25,7 @@ from app.schemas.evidence_fusion import (
 from app.schemas.email_authentication import EmailAuthenticationAnalysis
 from app.schemas.ip_intelligence import IPIntelligenceResult
 from app.schemas.url_intelligence import URLBatchAnalysisResult
+from app.services.scoring_engine import calculate_phishing_risk_score
 
 
 def _extract_url_evidence(
@@ -54,7 +57,7 @@ def _extract_url_evidence(
 
     # Track observations by destination hostname to prevent double counting
     for res in url_analysis.url_results:
-        host = res.normalized_hostname or res.features.hostname or "unknown-host"
+        host = res.normalized_hostname or res.features.normalized_host or res.features.raw_host or "unknown-host"
         unique_domains_set.add(host)
 
         for obs in res.observations:
@@ -434,10 +437,13 @@ def fuse_evidence(
     authentication_analysis: Optional[EmailAuthenticationAnalysis] = None,
     ip_intelligence: Optional[IPIntelligenceResult] = None,
     model_inference: Optional[Union[ModelInferenceEvidence, Dict[str, Any]]] = None,
+    header_info: Optional[EmailHeaderInfo] = None,
+    body_info: Optional[EmailBodyInfo] = None,
+    attachments: Optional[List[AttachmentInfo]] = None,
 ) -> EvidenceFusionResult:
     """
-    Main entry point for Evidence Fusion Engine (Phase 7A).
-    Synthesizes multi-modal observations into a transparent forensic assessment.
+    Main entry point for Evidence Fusion Engine.
+    Synthesizes multi-modal observations into an explainable 0-100 Phishing Risk Score.
     """
     all_contributing: List[str] = []
     all_missing: List[str] = []
@@ -458,185 +464,93 @@ def fuse_evidence(
     all_missing.extend(ip_missing)
     all_missing.extend(model_missing)
 
-    # 2. Determine Overall Assessment Category
-    has_high_url = (url_summary.highest_heuristic_risk == "HIGH")
-    has_med_url = (url_summary.highest_heuristic_risk == "MEDIUM")
-    has_auth_fail = auth_summary.has_explicit_failure
-    has_auth_conflict = auth_summary.has_conflicts
-    is_boundary_trusted = auth_summary.is_boundary_trusted
-
-    # Boundary-verified pass (requires trusted boundary MTA provenance)
-    has_trusted_auth_pass = (
-        auth_summary.has_valid_authentication
-        and is_boundary_trusted
-        and not has_auth_fail
-        and not has_auth_conflict
-    )
-
-    # Reported pass in headers (assertions exist within the uploaded email, unverified offline)
-    has_any_pass = any(s == "PASS" for s in [auth_summary.spf_status, auth_summary.dkim_status, auth_summary.dmarc_status])
-    has_reported_pass = (
-        has_any_pass
-        and not has_auth_fail
-        and not has_auth_conflict
-    )
-
-    model_score = model_summary.uncalibrated_score
-    has_high_model = (model_score is not None and model_score >= 0.7)
-    has_med_model = (model_score is not None and 0.4 <= model_score < 0.7)
-    has_low_model = (model_score is not None and model_score < 0.3)
-    has_model_error = (model_summary.status == ModelInferenceStatus.ERROR)
-
-    # Condition 1: Severe structural URL deception
-    # Strong independent phishing indicators cannot be automatically overridden by domain authentication.
-    if has_high_url and (has_auth_fail or has_high_model or len(url_summary.suspicious_indicators) >= 2):
-        category = AssessmentCategory.HIGH_RISK_INDICATORS_PRESENT
-        rationale = (
-            "High-risk indicators are present based on corroborated severe evidence: high-risk structural URL deception "
-            f"({', '.join(url_summary.suspicious_indicators[:2]) if url_summary.suspicious_indicators else 'severe link deception'}) "
-            "coinciding with explicit authentication failure, elevated text model similarity, or multiple deceptive URL markers."
-        )
-    elif has_high_url:
-        category = AssessmentCategory.HIGH_RISK_INDICATORS_PRESENT
-        rationale = (
-            "High-risk indicators are present based on severe structural URL heuristics (e.g. IP-literal host, "
-            "embedded credentials in authority, or dangerous scheme), even in the absence of corroborated text or auth signals."
-        )
-
-    # Condition 2: Explicit authentication failure corroborated by independent evidence
-    elif has_auth_fail and (has_med_url or has_high_model):
-        category = AssessmentCategory.HIGH_RISK_INDICATORS_PRESENT
-        corrob = []
-        if has_med_url:
-            corrob.append(f"moderate URL anomalies ({', '.join(url_summary.suspicious_indicators[:2])})")
-        if has_high_model:
-            corrob.append(f"elevated text model similarity ({model_score:.3f})")
-        rationale = (
-            "High-risk indicators are present due to explicit domain authentication failure "
-            f"(SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}) "
-            f"corroborated by independent evidence: {' and '.join(corrob)}."
-        )
-
-    # Condition 3: Elevated text model score corroborated by moderate URL anomalies on UNVERIFIED or UNTRUSTED email
-    # Requires genuine corroboration (multiple distinct suspicious URL indicators or explicit auth conflicts/failures).
-    # Isolated text score + single URL anomaly on reported-pass mail must NOT produce HIGH_RISK.
-    elif has_high_model and has_med_url and (has_auth_fail or has_auth_conflict or not has_reported_pass or len(url_summary.suspicious_indicators) >= 2):
-        category = AssessmentCategory.HIGH_RISK_INDICATORS_PRESENT
-        corrob_factors = [f"moderate URL anomalies ({', '.join(url_summary.suspicious_indicators[:2]) if url_summary.suspicious_indicators else 'suspicious URLs'})"]
-        if has_auth_fail:
-            corrob_factors.append(f"reported authentication failure (SPF={auth_summary.spf_status}, DMARC={auth_summary.dmarc_status})")
-        elif has_auth_conflict:
-            corrob_factors.append("conflicting authentication assertions across headers")
-        elif not has_reported_pass:
-            corrob_factors.append("absence of passing domain authentication")
-        rationale = (
-            f"High-risk indicators are present based on elevated text model similarity ({model_score:.3f}) "
-            f"corroborated by {'; '.join(corrob_factors)}."
-        )
-
-    # Condition 4: Authenticated email with elevated model score or moderate URL anomalies -> REVIEW_RECOMMENDED
-    elif has_trusted_auth_pass and (has_high_model or has_med_url):
-        category = AssessmentCategory.REVIEW_RECOMMENDED
-        if has_high_model and has_med_url:
-            rationale = (
-                f"Review recommended: DistilBERT text model flagged elevated phishing similarity ({model_score:.3f}) "
-                f"and URL analysis flagged moderate structural indicators ({', '.join(url_summary.suspicious_indicators[:2])}), "
-                f"despite domain authentication passing at recipient boundary MTA (SPF={auth_summary.spf_status}, "
-                f"DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}). Because model score is uncalibrated "
-                "and authentication does not prove body content safety, manual analyst review is recommended."
-            )
-        elif has_high_model:
-            rationale = (
-                f"Review recommended: DistilBERT text model flagged elevated phishing similarity ({model_score:.3f}), "
-                f"but receiver-reported domain authentication passed at boundary MTA (SPF={auth_summary.spf_status}, "
-                f"DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}) without corroborating structural URL deception. "
-                "Because model score is uncalibrated, analyst review is recommended."
-            )
-        else:
-            rationale = (
-                "Review recommended: Domain authentication passed at recipient boundary MTA "
-                f"(SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}), "
-                f"but moderate structural URL anomalies ({', '.join(url_summary.suspicious_indicators[:2])}) were observed. "
-                "Manual analyst review is recommended."
-            )
-
-    # Condition 5: Elevated model score with reported auth pass or uncorroborated text similarity -> REVIEW_RECOMMENDED
-    elif has_high_model and not has_high_url:
-        category = AssessmentCategory.REVIEW_RECOMMENDED
-        if has_reported_pass:
-            rationale = (
-                f"Review recommended: DistilBERT text model flagged elevated phishing similarity ({model_score:.3f}), "
-                f"while email headers report passing domain authentication (SPF={auth_summary.spf_status}, "
-                f"DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}) without severe URL deception. "
-                "Because the model score is uncalibrated and reported authentication cannot be independently verified offline, "
-                "analyst review is recommended."
-            )
-        else:
-            rationale = (
-                f"Review recommended: DistilBERT text model flagged elevated phishing similarity ({model_score:.3f}), "
-                "but no corroborating severe structural URL or verified authentication failure evidence was observed. "
-                "Because model score is uncalibrated, analyst review is recommended."
-            )
-
-    # Condition 6: Moderate URL anomalies, isolated auth failure, auth conflicts, borderline model, or model errors
-    elif has_med_url or has_auth_conflict or has_auth_fail or has_med_model or has_model_error or (not is_boundary_trusted and auth_summary.has_valid_authentication):
-        category = AssessmentCategory.REVIEW_RECOMMENDED
-        factors = []
-        if has_med_url:
-            factors.append(f"moderate URL anomalies ({', '.join(url_summary.suspicious_indicators[:2])})")
-        if has_auth_conflict:
-            factors.append("contradictory authentication results across intermediate headers")
-        if has_auth_fail:
-            factors.append(f"reported authentication failure (SPF={auth_summary.spf_status}, DMARC={auth_summary.dmarc_status}) without corroborating structural URL deception")
-        if not is_boundary_trusted and auth_summary.has_valid_authentication:
-            factors.append("domain authentication pass assertions are reported in headers but cannot be independently verified offline")
-        if has_med_model:
-            factors.append(f"borderline text model score ({model_score:.3f})")
-        if has_model_error:
-            factors.append("text model inference error")
-        rationale = (
-            f"Review recommended due to anomalous, unverified, or indeterminate forensic indicators requiring manual inspection: {'; '.join(factors)}."
-        )
-
-    # Condition 7: Low risk indicators (Verified boundary auth, clean/low-risk URLs, low or neutral model score)
-    elif has_trusted_auth_pass and (url_summary.highest_heuristic_risk in ["INFO", "NONE", "LOW"]) and (has_low_model or (model_score is None and not has_model_error)):
-        category = AssessmentCategory.LOW_RISK_INDICATORS
-        rationale = (
-            "Low risk indicators observed: domain authentication passed at the recipient boundary MTA "
-            f"(SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}) "
-            "with negligible structural URL anomalies and low textual phishing similarity."
-        )
-
-    # Condition 8: Insufficient evidence in all other cases
+    # 2. Convert dict model_inference if passed as dict
+    parsed_model_evidence: Optional[ModelInferenceEvidence]
+    if isinstance(model_inference, dict):
+        parsed_model_evidence = ModelInferenceEvidence(**model_inference)
+    elif isinstance(model_inference, ModelInferenceEvidence):
+        parsed_model_evidence = model_inference
     else:
-        category = AssessmentCategory.INSUFFICIENT_EVIDENCE
-        if has_reported_pass:
-            rationale = (
-                "Insufficient evidence available to assign a verified low-risk or elevated-risk category. "
-                f"Receiver-reported domain authentication passed (SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}) "
-                "with negligible structural URL risk, but assertions cannot be independently established without live boundary trust."
-            )
-        else:
-            rationale = (
-                "Insufficient evidence available to assign an elevated risk category. "
-                "Key forensic indicators (such as URLs, authentication headers, or public transit IPs) were absent or neutral."
-            )
+        parsed_model_evidence = None
 
-    reasoning = _format_forensic_explanation(
-        category=category,
-        primary_rationale=rationale,
-        model_summary=model_summary,
-        url_summary=url_summary,
-        auth_summary=auth_summary,
+    # 3. Calculate 0-100 Phishing Risk Score using Evidence-Based Scoring Engine
+    (
+        overall_score,
+        category,
+        breakdown,
+        completeness_status,
+        completeness_detail,
+        pos_evidence,
+        neg_evidence,
+    ) = calculate_phishing_risk_score(
+        header_info=header_info,
+        body_info=body_info,
+        attachments=attachments,
+        url_analysis=url_analysis,
+        auth_analysis=authentication_analysis,
+        ip_analysis=ip_intelligence,
+        model_inference=parsed_model_evidence,
     )
+
+    # 4. Format natural-language reasoning explanation
+    reasoning_parts = [
+        f"Overall Phishing Risk Score: {overall_score}/100 ({category.value.replace('_', ' ')}).",
+        f"Evidence completeness: {completeness_status.value} — {completeness_detail}",
+        (
+            f"Category contributions: Sender/Auth {breakdown.sender_auth.score}/25, "
+            f"URLs {breakdown.url_intelligence.score}/25, Content/Language {breakdown.content_language.score}/20, "
+            f"ML Model {breakdown.ml_model.score}/20, Header/IP {breakdown.header_ip.score}/10."
+        ),
+    ]
+    if neg_evidence:
+        reasoning_parts.append(f"Risk indicators: {'; '.join(neg_evidence[:3])}.")
+    if url_summary.highest_heuristic_risk == "HIGH":
+        reasoning_parts.append("Risk assessment driven by severe structural URL heuristics.")
+    if pos_evidence:
+        reasoning_parts.append(f"Mitigating observations: {'; '.join(pos_evidence[:3])}.")
+    if parsed_model_evidence and parsed_model_evidence.uncalibrated_score is not None:
+        reasoning_parts.append(
+            f"Model evidence: DistilBERT NLP uncalibrated phishing score {parsed_model_evidence.uncalibrated_score:.3f}. {model_summary.interpretation}"
+        )
+    else:
+        reasoning_parts.append(f"Model heuristic interpretation: {model_summary.interpretation}")
+    if auth_summary.has_conflicts:
+        reasoning_parts.append(f"Authentication evidence: {auth_summary.explanation}")
+    else:
+        reasoning_parts.append(
+            f"Authentication evidence: SPF={auth_summary.spf_status}, DKIM={auth_summary.dkim_status}, DMARC={auth_summary.dmarc_status}."
+        )
+
+    reasoning = " ".join(reasoning_parts)
+
+    # 5. Map evidence truthfully according to forensic semantics
+    clean_positive = list(dict.fromkeys(pos_evidence))
+    clean_negative = list(dict.fromkeys(neg_evidence))
+    clean_missing = list(dict.fromkeys(all_missing))
+
+    # Contributing factors represent findings that influenced the category
+    if category in (AssessmentCategory.HIGH_RISK_INDICATORS_PRESENT, AssessmentCategory.REVIEW_RECOMMENDED):
+        clean_contributing = list(dict.fromkeys(all_contributing + clean_negative))
+    elif category == AssessmentCategory.LOW_RISK_INDICATORS:
+        clean_contributing = list(dict.fromkeys(clean_positive + all_contributing))
+    else:  # INSUFFICIENT_EVIDENCE
+        clean_contributing = list(dict.fromkeys(all_contributing)) if all_contributing else [
+            "Insufficient conclusive forensic indicators available to assign an elevated risk category."
+        ]
 
     return EvidenceFusionResult(
         overall_category=category,
+        overall_risk_score=overall_score,
+        risk_score_breakdown=breakdown,
+        evidence_completeness=completeness_status,
+        evidence_completeness_detail=completeness_detail,
+        positive_evidence=clean_positive,
+        negative_evidence=clean_negative,
         model_evidence=model_summary,
         url_evidence=url_summary,
         auth_evidence=auth_summary,
         ip_evidence=ip_summary,
-        contributing_factors=all_contributing,
-        inconclusive_or_missing_factors=all_missing,
+        contributing_factors=clean_contributing,
+        inconclusive_or_missing_factors=clean_missing,
         reasoning=reasoning,
     )

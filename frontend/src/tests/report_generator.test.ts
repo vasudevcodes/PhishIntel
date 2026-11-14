@@ -297,14 +297,13 @@ describe('Phase 8C — Downloadable Forensic Report Tests', () => {
     assert.ok(html.includes('Elevated phishing text patterns and raw IP destination'));
     assert.ok(html.includes('Mandatory Non-Verdict Disclaimer:'));
 
-    // Section 2: DistilBERT Inference
+    // Section 2: DistilBERT Inference (Caveat box removed per Task 2)
     assert.ok(html.includes('2. DistilBERT Transformer Text Inference'));
     assert.ok(html.includes('EVALUATED'));
     assert.ok(html.includes('1 (Phishing Indicator)'));
     assert.ok(html.includes('0.8841'));
-    assert.ok(html.includes('Prominent Calibration Caveat:'));
-    assert.ok(html.includes('uncalibrated DistilBERT output'));
-    assert.ok(html.includes('Strict Rule: Score is NEVER represented as a calibrated probability'));
+    assert.ok(!html.includes('Prominent Calibration Caveat:'));
+    assert.ok(!html.includes('caveat-box'));
 
     // Section 3: URL Intelligence
     assert.ok(html.includes('3. URL Intelligence &amp; Lexical Heuristics'));
@@ -320,8 +319,9 @@ describe('Phase 8C — Downloadable Forensic Report Tests', () => {
     assert.ok(html.includes('p=reject'));
     assert.ok(html.includes('Trust Boundary Limitation:'));
 
-    // Section 5: IP Intelligence
-    assert.ok(html.includes('5. IP Intelligence &amp; Transit Reconstruction'));
+    // Section 5: IP Intelligence (Transit reconstruction presentation removed per Task 3)
+    assert.ok(html.includes('5. IP Intelligence'));
+    assert.ok(!html.includes('Transit Reconstruction'));
     assert.ok(html.includes('198.51.100.25'));
     assert.ok(html.includes('Apparent Origin'));
     assert.ok(html.includes('Forensic IP Limitation:'));
@@ -363,7 +363,7 @@ describe('Phase 8C — Downloadable Forensic Report Tests', () => {
     assert.ok(html.includes('N/A (ERROR)'), 'Predicted label must be N/A when model errored');
     assert.ok(!html.includes('1 (Phishing Indicator)'), 'Must not report Phishing when errored');
     assert.ok(!html.includes('0 (Benign Pattern)'), 'Must not report Benign when errored');
-    assert.ok(html.includes('Score is NEVER represented as a calibrated probability'));
+    assert.ok(!html.includes('Prominent Calibration Caveat:'));
   });
 
   test('6. DistilBERT Unavailable State: exports unavailable status without fabricating score or label', () => {

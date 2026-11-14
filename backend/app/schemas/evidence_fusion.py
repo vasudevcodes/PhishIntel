@@ -103,6 +103,37 @@ class IPEvidenceSummary(BaseModel):
     )
 
 
+class EvidenceCompletenessStatus(str, Enum):
+    FULL_COVERAGE = "FULL_COVERAGE"
+    PARTIAL_COVERAGE = "PARTIAL_COVERAGE"
+    MINIMAL_OR_INSUFFICIENT = "MINIMAL_OR_INSUFFICIENT"
+
+
+class CategoryScoreDetail(BaseModel):
+    """
+    Detailed numerical contribution and explanation for an individual evidence category.
+    """
+    category_name: str = Field(..., description="Human-readable category title")
+    score: int = Field(..., ge=0, description="Heuristic risk points accrued")
+    max_score: int = Field(..., ge=1, description="Maximum possible risk points in this category")
+    weight_percentage: int = Field(..., ge=1, le=100, description="Target architecture weight percentage")
+    explanation: str = Field(..., description="Explainable rationale for points assigned")
+    rules_triggered: List[str] = Field(default_factory=list, description="IDs of rules that contributed points")
+    is_dampened: bool = Field(False, description="Whether corroboration dampening was applied (ML model category)")
+
+
+class CategoryScoresBreakdown(BaseModel):
+    """
+    Structured breakdown of risk points across the 5 evidence categories.
+    Total maximum sum = 100 points.
+    """
+    sender_auth: CategoryScoreDetail = Field(..., description="Sender identity and authentication (max 25 pts)")
+    url_intelligence: CategoryScoreDetail = Field(..., description="URL and link intelligence (max 25 pts)")
+    content_language: CategoryScoreDetail = Field(..., description="Content and language analysis (max 20 pts)")
+    ml_model: CategoryScoreDetail = Field(..., description="ML model analysis (max 20 pts)")
+    header_ip: CategoryScoreDetail = Field(..., description="Header, IP and infrastructure intelligence (max 10 pts)")
+
+
 class EvidenceFusionResult(BaseModel):
     """
     Structured multi-modal evidence fusion assessment for an analyzed email.
@@ -110,6 +141,32 @@ class EvidenceFusionResult(BaseModel):
     overall_category: AssessmentCategory = Field(
         ...,
         description="Overall forensic assessment category with explicit uncertainty"
+    )
+    overall_risk_score: int = Field(
+        0,
+        ge=0,
+        le=100,
+        description="Transparent 0-100 overall phishing risk score based on weighted evidence categories. Not a statistical probability."
+    )
+    risk_score_breakdown: Optional[CategoryScoresBreakdown] = Field(
+        None,
+        description="Detailed point contributions across the 5 evidence categories"
+    )
+    evidence_completeness: EvidenceCompletenessStatus = Field(
+        EvidenceCompletenessStatus.FULL_COVERAGE,
+        description="Assessment of evidence completeness and coverage"
+    )
+    evidence_completeness_detail: str = Field(
+        default="Complete forensic evidence available across headers, body, authentication, and transit chain.",
+        description="Explanation of evidence coverage and missing modalities"
+    )
+    positive_evidence: List[str] = Field(
+        default_factory=list,
+        description="Observed mitigating or authenticating evidence factors"
+    )
+    negative_evidence: List[str] = Field(
+        default_factory=list,
+        description="Observed risk-elevating or suspicious evidence factors"
     )
     model_evidence: ModelEvidenceInterpretation = Field(..., description="DistilBERT NLP evidence interpretation")
     url_evidence: URLEvidenceSummary = Field(..., description="URL intelligence evidence summary")
