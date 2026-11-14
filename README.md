@@ -6,7 +6,7 @@ Phase 1 establishes the core forensic ingestion engine, deep header parser, tran
 
 ---
 
-## Key Capabilities (Phase 1)
+## Key Capabilities 
 
 - **Transit Hop Extraction**: Preserves the complete chain of all `Received` headers exactly as extracted from the email (where Hop #0 is typically the newest/most recent hop, and the final hop is typically the oldest hop closest to origin).
 - **Candidate IP Extraction & Classification**: Detects IPv4 and IPv6 addresses across transit hops and strictly classifies them into distinct scopes: RFC 1918 `Private`, `Documentation` (TEST-NET-1/2/3, 2001:db8::/32), `Loopback`, `Link-Local`, `Multicast`, `Special-Purpose`, `Reserved`, or `Public`. Avoids blanket labeling based on `is_private`.
